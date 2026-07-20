@@ -1,0 +1,260 @@
+.event-detail-page {
+  min-height: 100vh;
+  padding: 48px 24px;
+  background:
+    radial-gradient(circle at top left, rgba(99, 102, 241, 0.12), transparent 32%),
+    #f7f8fc;
+  color: #1f2937;
+}
+
+.event-detail-container,
+.loading-state,
+.error-state {
+  width: 100%;
+  max-width: 1050px;
+  margin: 0 auto;
+}
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  margin-bottom: 24px;
+  padding: 10px 18px;
+  border: 1px solid #dbe0ea;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.back-button:hover {
+  background: #f3f4f6;
+  border-color: #c7cdd8;
+  transform: translateY(-1px);
+}
+
+.detail-header {
+  padding: 40px;
+  border: 1px solid #e5e7eb;
+  border-radius: 22px;
+  background: #ffffff;
+  box-shadow: 0 16px 45px rgba(31, 41, 55, 0.08);
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.category-badge,
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.category-badge {
+  background: #eef2ff;
+  color: #4f46e5;
+}
+
+.status-badge {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status-badge.passive {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.detail-header h1 {
+  margin: 0 0 16px;
+  color: #111827;
+  font-size: clamp(32px, 5vw, 52px);
+  line-height: 1.1;
+}
+
+.description {
+  max-width: 800px;
+  margin: 0;
+  color: #6b7280;
+  font-size: 17px;
+  line-height: 1.8;
+}
+
+.detail-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.8fr);
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.information-card,
+.organizer-card {
+  padding: 30px;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 12px 32px rgba(31, 41, 55, 0.06);
+}
+
+.information-card h2,
+.organizer-card h2 {
+  margin: 0 0 24px;
+  color: #111827;
+  font-size: 22px;
+}
+
+.info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 18px 0;
+  border-bottom: 1px solid #edf0f5;
+}
+
+.info-row:first-of-type {
+  padding-top: 0;
+}
+
+.info-row:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.info-icon {
+  display: flex;
+  flex: 0 0 46px;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: #f3f4f6;
+  font-size: 21px;
+}
+
+.info-row div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-label {
+  color: #9ca3af;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.info-row strong {
+  color: #1f2937;
+  font-size: 16px;
+}
+
+.info-row small {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.organizer-card {
+  align-self: start;
+}
+
+.organizer-card strong {
+  display: block;
+  margin-bottom: 12px;
+  color: #4f46e5;
+  font-size: 20px;
+}
+
+.organizer-card p {
+  margin: 0;
+  color: #6b7280;
+  line-height: 1.7;
+}
+
+.loading-state,
+.error-state {
+  padding: 50px 30px;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  background: #ffffff;
+  text-align: center;
+  box-shadow: 0 12px 32px rgba(31, 41, 55, 0.06);
+}
+
+.loading-state p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 17px;
+}
+
+.error-state h2 {
+  margin: 0 0 10px;
+  color: #b91c1c;
+}
+
+.error-state p {
+  margin: 0 0 22px;
+  color: #6b7280;
+}
+
+.error-state .back-button {
+  margin-bottom: 0;
+}
+
+@media (max-width: 800px) {
+  .event-detail-page {
+    padding: 28px 16px;
+  }
+
+  .detail-header {
+    padding: 28px 22px;
+  }
+
+  .detail-content {
+    grid-template-columns: 1fr;
+  }
+
+  .information-card,
+  .organizer-card {
+    padding: 24px 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .detail-header h1 {
+    font-size: 30px;
+  }
+
+  .description {
+    font-size: 15px;
+  }
+
+  .info-row {
+    gap: 12px;
+  }
+
+  .info-icon {
+    flex-basis: 40px;
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+}

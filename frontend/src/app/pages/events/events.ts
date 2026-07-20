@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 
 import { EventService } from '../../services/event';
 import { Event } from '../../models/event.model';
@@ -24,7 +25,10 @@ export class Events implements OnInit {
   categories: string[] = [];
   cities: string[] = [];
 
-  constructor(private eventService: EventService) {}
+  constructor(
+    private eventService: EventService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.getEvents();
@@ -89,5 +93,9 @@ export class Events implements OnInit {
     this.selectedDate = '';
 
     this.filteredEvents = this.events;
+  }
+
+  goToEventDetail(eventId: number): void {
+    this.router.navigate(['/events', eventId]);
   }
 }

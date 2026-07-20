@@ -1,4 +1,141 @@
-<section>
-  <h1>Etkinlik Detayı</h1>
-  <p>Seçilen etkinliğin bilgileri bu sayfada gösterilecek.</p>
+<section class="event-detail-page">
+
+  <!-- Yükleniyor -->
+  <div
+    class="loading-state"
+    *ngIf="isLoading"
+  >
+    <p>Etkinlik bilgileri yükleniyor...</p>
+  </div>
+
+  <!-- Hata durumu -->
+  <div
+    class="error-state"
+    *ngIf="!isLoading && errorMessage"
+  >
+    <h2>Bir sorun oluştu</h2>
+
+    <p>{{ errorMessage }}</p>
+
+    <button
+      type="button"
+      class="back-button"
+      (click)="goBack()"
+    >
+      Etkinliklere Dön
+    </button>
+  </div>
+
+  <!-- Etkinlik detayı -->
+  <div
+    class="event-detail-container"
+    *ngIf="!isLoading && event"
+  >
+
+    <button
+      type="button"
+      class="back-button"
+      (click)="goBack()"
+    >
+      ← Etkinliklere Dön
+    </button>
+
+    <div class="detail-header">
+
+      <div class="badges">
+        <span class="category-badge">
+          {{ event.category.category_name }}
+        </span>
+
+        <span
+          class="status-badge"
+          [class.passive]="event.status !== 'active'"
+        >
+          {{ event.status === 'active' ? 'Aktif' : event.status }}
+        </span>
+      </div>
+
+      <h1>{{ event.title }}</h1>
+
+      <p class="description">
+        {{ event.description }}
+      </p>
+
+    </div>
+
+    <div class="detail-content">
+
+      <div class="information-card">
+
+        <h2>Etkinlik Bilgileri</h2>
+
+        <div class="info-row">
+          <span class="info-icon">📅</span>
+
+          <div>
+            <span class="info-label">Tarih</span>
+            <strong>{{ event.event_date }}</strong>
+          </div>
+        </div>
+
+        <div class="info-row">
+          <span class="info-icon">🕒</span>
+
+          <div>
+            <span class="info-label">Saat</span>
+
+            <strong>
+              {{ event.start_time }} – {{ event.end_time }}
+            </strong>
+          </div>
+        </div>
+
+        <div class="info-row">
+          <span class="info-icon">📍</span>
+
+          <div>
+            <span class="info-label">Konum</span>
+
+            <strong>
+              {{ event.location.location_name }}
+            </strong>
+
+            <small>
+              {{ event.location.district }},
+              {{ event.location.city }}
+            </small>
+          </div>
+        </div>
+
+        <div class="info-row">
+          <span class="info-icon">👥</span>
+
+          <div>
+            <span class="info-label">Kapasite</span>
+            <strong>{{ event.capacity }} kişi</strong>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="organizer-card">
+
+        <h2>Düzenleyen</h2>
+
+        <strong>
+          {{ event.organizer.name }}
+          {{ event.organizer.surname }}
+        </strong>
+
+        <p>
+          Bu etkinlik hakkında detaylı bilgi almak için etkinlik
+          düzenleyicisiyle iletişime geçebilirsin.
+        </p>
+
+      </div>
+
+    </div>
+
+  </div>
+
 </section>

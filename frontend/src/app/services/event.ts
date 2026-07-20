@@ -12,7 +12,13 @@ export class EventService {
 
   constructor(private http: HttpClient) {}
 
+  // Tüm etkinlikleri getirir
   getAllEvents(): Observable<EventResponse> {
     return this.http.get<EventResponse>(this.apiUrl);
+  }
+
+  // ID'ye göre tek bir etkinliği getirir
+  getEventById(id: number | string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/${id}`);
   }
 }
