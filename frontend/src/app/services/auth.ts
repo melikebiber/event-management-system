@@ -1,0 +1,57 @@
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+
+interface LoginRequest {
+  email: string;
+  password: string;
+}
+interface SignupRequest {
+  name: string;
+  surname: string;
+  email: string;
+  password: string;
+  phone: string;
+}
+
+interface LoginResponse {
+  success?: boolean;
+  token?: string;
+  message?: string;
+  user?: unknown;
+}
+interface SignupResponse {
+  success?: boolean;
+  message?: string;
+  user?: unknown;
+}
+
+@Injectable({
+  providedIn: 'root'
+})
+export class Auth {
+  private apiUrl = 'http://localhost:3000';
+
+  constructor(private http: HttpClient) {}
+
+  login(loginData: LoginRequest): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(
+      `${this.apiUrl}/login`,
+      loginData
+    );
+  }
+  signup(signupData: SignupRequest): Observable<SignupResponse> {
+  return this.http.post<SignupResponse>(
+    `${this.apiUrl}/signup`,
+    signupData
+  );
+}
+
+  isLoggedIn(): boolean {
+    return localStorage.getItem('token') !== null;
+  }
+
+  logout(): void {
+    localStorage.removeItem('token');
+  }
+}

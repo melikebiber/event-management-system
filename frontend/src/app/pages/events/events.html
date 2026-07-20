@@ -1,0 +1,225 @@
+<section class="events-page">
+
+  <div class="page-header">
+    <span class="page-label">ETKİNLİKLER</span>
+
+    <h1>Yeni deneyimler keşfet</h1>
+
+    <p>
+      İlgi alanına uygun etkinlikleri incele; kategori, şehir ve tarih
+      seçerek aradığın etkinliğe kolayca ulaş.
+    </p>
+  </div>
+
+  <!-- Filtre alanı -->
+  <div class="filter-panel">
+
+    <div class="filter-group">
+      <label for="category">Kategori</label>
+
+      <select
+        id="category"
+        [(ngModel)]="selectedCategory"
+      >
+        <option value="">Tüm kategoriler</option>
+
+        <option
+          *ngFor="let category of categories"
+          [value]="category"
+        >
+          {{ category }}
+        </option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="city">Şehir</label>
+
+      <select
+        id="city"
+        [(ngModel)]="selectedCity"
+      >
+        <option value="">Tüm şehirler</option>
+
+        <option
+          *ngFor="let city of cities"
+          [value]="city"
+        >
+          {{ city }}
+        </option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="date">Tarih</label>
+
+      <input
+        id="date"
+        type="date"
+        [(ngModel)]="selectedDate"
+      />
+    </div>
+
+    <div class="filter-actions">
+      <button
+        class="filter-button"
+        type="button"
+        (click)="filterEvents()"
+      >
+        Etkinlikleri Filtrele
+      </button>
+
+      <button
+        class="clear-button"
+        type="button"
+        (click)="clearFilters()"
+      >
+        Temizle
+      </button>
+    </div>
+
+  </div>
+
+  <!-- Sonuç bilgisi -->
+  <div class="results-header">
+    <div>
+      <h2>Etkinlikler</h2>
+
+      <p *ngIf="filteredEvents.length > 0">
+        Toplam {{ filteredEvents.length }} etkinlik bulundu.
+      </p>
+    </div>
+  </div>
+
+  <!-- Etkinlik bulunamadığında -->
+  <div
+    class="empty-state"
+    *ngIf="filteredEvents.length === 0"
+  >
+    <div class="empty-icon">!</div>
+
+    <h3>Etkinlik bulunamadı</h3>
+
+    <p>
+      Seçtiğin filtrelere uygun bir etkinlik bulunamadı.
+    </p>
+  </div>
+
+  <!-- Etkinlik kartları -->
+  <div
+    class="events-grid"
+    *ngIf="filteredEvents.length > 0"
+  >
+
+    <article
+      class="event-card"
+      *ngFor="let event of filteredEvents"
+    >
+
+      <div class="card-top">
+
+        <span class="category-badge">
+          {{ event.category.category_name }}
+        </span>
+
+        <span
+          class="status-badge"
+          [class.passive]="event.status !== 'active'"
+        >
+          {{ event.status === 'active' ? 'Aktif' : event.status }}
+        </span>
+
+      </div>
+
+      <div class="card-content">
+
+        <h3>{{ event.title }}</h3>
+
+        <p class="description">
+          {{ event.description }}
+        </p>
+
+        <div class="event-information">
+
+          <div class="info-row">
+            <span class="info-icon">📅</span>
+
+            <div>
+              <span class="info-label">Tarih</span>
+
+              <strong>
+                {{ event.event_date }}
+              </strong>
+            </div>
+          </div>
+
+          <div class="info-row">
+            <span class="info-icon">🕒</span>
+
+            <div>
+              <span class="info-label">Saat</span>
+
+              <strong>
+                {{ event.start_time }} – {{ event.end_time }}
+              </strong>
+            </div>
+          </div>
+
+          <div class="info-row">
+            <span class="info-icon">📍</span>
+
+            <div>
+              <span class="info-label">Konum</span>
+
+              <strong>
+                {{ event.location.location_name }}
+              </strong>
+
+              <small>
+                {{ event.location.district }},
+                {{ event.location.city }}
+              </small>
+            </div>
+          </div>
+
+          <div class="info-row">
+            <span class="info-icon">👥</span>
+
+            <div>
+              <span class="info-label">Kapasite</span>
+
+              <strong>
+                {{ event.capacity }} kişi
+              </strong>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="card-footer">
+
+        <div class="organizer">
+          <span>Düzenleyen</span>
+
+          <strong>
+            {{ event.organizer.name }}
+            {{ event.organizer.surname }}
+          </strong>
+        </div>
+
+        <button
+          class="detail-button"
+          type="button"
+        >
+          Detayları Gör
+        </button>
+
+      </div>
+
+    </article>
+
+  </div>
+
+</section>

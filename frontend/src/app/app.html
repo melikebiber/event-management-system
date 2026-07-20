@@ -1,0 +1,57 @@
+<header class="navbar">
+  <a class="logo" routerLink="/">
+    Etkinlik Yönetimi
+  </a>
+
+  <nav class="nav-links">
+    <a
+      routerLink="/"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+    >
+      Ana Sayfa
+    </a>
+
+    <a
+      routerLink="/events"
+      routerLinkActive="active"
+    >
+      Etkinlikler
+    </a>
+
+    @if (authService.isLoggedIn()) {
+  <button
+    type="button"
+    class="logout-button"
+    (click)="logout()"
+  >
+    Çıkış Yap
+  </button>
+} @else {
+  <a
+    routerLink="/login"
+    routerLinkActive="active"
+  >
+    Giriş Yap
+  </a>
+
+  <a
+    routerLink="/register"
+    routerLinkActive="active"
+  >
+    Kayıt Ol
+  </a>
+}
+
+    <a
+      routerLink="/admin"
+      routerLinkActive="active"
+    >
+      Admin
+    </a>
+  </nav>
+</header>
+
+<main class="page-content">
+  <router-outlet></router-outlet>
+</main>

@@ -1,0 +1,96 @@
+<section class="auth-page">
+  <div class="auth-card">
+    <div class="auth-header">
+      <span class="auth-label">Tekrar hoş geldin</span>
+      <h1>Giriş Yap</h1>
+      <p>Etkinliklerini görüntülemek için hesabına giriş yap.</p>
+    </div>
+
+    <form
+      class="auth-form"
+      [formGroup]="loginForm"
+      (ngSubmit)="onSubmit()"
+    >
+      <div class="form-group">
+        <label for="email">E-posta</label>
+
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          placeholder="ornek@mail.com"
+        >
+
+        @if (
+          loginForm.controls.email.touched &&
+          loginForm.controls.email.hasError('required')
+        ) {
+          <small class="error-message">
+            E-posta alanı zorunludur.
+          </small>
+        }
+
+        @if (
+          loginForm.controls.email.touched &&
+          loginForm.controls.email.hasError('email')
+        ) {
+          <small class="error-message">
+            Geçerli bir e-posta adresi giriniz.
+          </small>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="password">Şifre</label>
+
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
+          placeholder="Şifrenizi girin"
+        >
+
+        @if (
+          loginForm.controls.password.touched &&
+          loginForm.controls.password.hasError('required')
+        ) {
+          <small class="error-message">
+            Şifre alanı zorunludur.
+          </small>
+        }
+
+        @if (
+          loginForm.controls.password.touched &&
+          loginForm.controls.password.hasError('minlength')
+        ) {
+          <small class="error-message">
+            Şifre en az 6 karakter olmalıdır.
+          </small>
+        }
+      </div>
+
+      <button
+        type="submit"
+        class="submit-button"
+        [disabled]="loginForm.invalid || isLoading"
+      >
+        @if (isLoading) {
+          Giriş yapılıyor...
+        } @else {
+          Giriş Yap
+        }
+      </button>
+
+      @if (loginMessage) {
+        <p class="login-message">
+          {{ loginMessage }}
+        </p>
+      }
+    </form>
+
+    <p class="auth-footer">
+      Henüz hesabın yok mu?
+      <a routerLink="/register">Kayıt Ol</a>
+    </p>
+  </div>
+</section>

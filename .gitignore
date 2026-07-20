@@ -1,0 +1,31 @@
+# Dependencies
+frontend/node_modules/
+backend/node_modules/
+
+# Angular generated files
+frontend/.angular/
+frontend/dist/
+
+# Environment files
+backend/.env
+backend/.env.*
+frontend/.env
+frontend/.env.*
+
+# Old Git repository backup
+frontend/.git-backup/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor and operating system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local database files
+backend/storage/*.db
+backend/storage/*.sqlite
+backend/storage/*.sqlite3
