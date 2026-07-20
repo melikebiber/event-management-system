@@ -35,6 +35,38 @@ exports.getAllTickets = async (req, res) => {
     });
   }
 };
+// Etkinliğe ait biletleri listeler
+exports.getTicketsByEventId = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+
+    const event = await Event.findByPk(eventId);
+
+    if (!event) {
+      return res.status(404).json({
+        success: false,
+        message: 'Etkinlik bulunamadı.'
+      });
+    }
+
+    const tickets = await Ticket.findAll({
+      where: {
+        event_id: eventId
+      },
+      order: [['ticket_id', 'ASC']]
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: tickets
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+};
 
 // Yeni bilet türü oluşturur
 exports.createTicket = async (req, res) => {

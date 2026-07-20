@@ -8,7 +8,21 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { EventService } from '../../services/event';
+import {
+  Ticket,
+  TicketService
+} from '../../services/ticket';
+import {
+  RegistrationService
+} from '../../services/registration';
+
 import { Event } from '../../models/event.model';
+
+interface CurrentUser {
+  id: number;
+  username?: string;
+  email?: string;
+}
 
 @Component({
   selector: 'app-event-detail',
@@ -20,13 +34,22 @@ import { Event } from '../../models/event.model';
 export class EventDetail implements OnInit {
 
   event: Event | null = null;
+  tickets: Ticket[] = [];
+  selectedTicket: Ticket | null = null;
+
   isLoading = true;
+  isRegistering = false;
+
   errorMessage = '';
+  registrationMessage = '';
+  registrationSuccess = false;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private eventService: EventService,
+    private ticketService: TicketService,
+    private registrationService: RegistrationService,
     private changeDetector: ChangeDetectorRef
   ) {}
 
@@ -40,6 +63,7 @@ export class EventDetail implements OnInit {
     }
 
     this.getEventDetail(eventId);
+    this.getEventTickets(eventId);
   }
 
   getEventDetail(eventId: string): void {
@@ -49,20 +73,154 @@ export class EventDetail implements OnInit {
         this.isLoading = false;
         this.errorMessage = '';
 
-        console.log('Etkinlik detayı:', this.event);
-
         this.changeDetector.detectChanges();
       },
       error: (error: unknown) => {
-        console.error('Etkinlik detayı alınamadı:', error);
+        console.error(
+          'Etkinlik detayı alınamadı:',
+          error
+        );
 
         this.event = null;
-        this.errorMessage = 'Etkinlik bilgileri alınamadı.';
+        this.errorMessage =
+          'Etkinlik bilgileri alınamadı.';
         this.isLoading = false;
 
         this.changeDetector.detectChanges();
       }
     });
+  }
+
+  getEventTickets(eventId: string): void {
+    this.ticketService
+      .getTicketsByEventId(eventId)
+      .subscribe({
+        next: (response) => {
+          this.tickets = response.data;
+
+          this.selectedTicket =
+            this.tickets.find(
+              ticket =>
+                ticket.available_quantity > 0
+            ) ?? null;
+
+          this.changeDetector.detectChanges();
+        },
+        error: (error: unknown) => {
+          console.error(
+            'Bilet bilgileri alınamadı:',
+            error
+          );
+
+          this.tickets = [];
+          this.selectedTicket = null;
+
+          this.changeDetector.detectChanges();
+        }
+      });
+  }
+
+  registerForEvent(): void {
+    this.registrationMessage = '';
+    this.registrationSuccess = false;
+
+    if (!this.event) {
+      this.registrationMessage =
+        'Etkinlik bilgisi bulunamadı.';
+      return;
+    }
+
+    if (!this.selectedTicket) {
+      this.registrationMessage =
+        'Bu etkinlik için uygun bilet bulunamadı.';
+      return;
+    }
+
+    if (
+      this.selectedTicket.available_quantity <= 0
+    ) {
+      this.registrationMessage =
+        'Bu etkinlikte boş kontenjan kalmadı.';
+      return;
+    }
+
+    const currentUserText =
+      localStorage.getItem('currentUser');
+
+    if (!currentUserText) {
+      this.registrationMessage =
+        'Etkinliğe katılmak için giriş yapmalısın.';
+
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    let currentUser: CurrentUser;
+
+    try {
+      currentUser = JSON.parse(
+        currentUserText
+      ) as CurrentUser;
+    } catch {
+      this.registrationMessage =
+        'Kullanıcı bilgisi okunamadı. Yeniden giriş yap.';
+
+      return;
+    }
+
+    if (!currentUser.id) {
+      this.registrationMessage =
+        'Kullanıcı ID bilgisi bulunamadı.';
+
+      return;
+    }
+
+    this.isRegistering = true;
+
+    const registrationData = {
+      user_id: currentUser.id,
+      event_id: this.event.event_id,
+      ticket_id: this.selectedTicket.ticket_id
+    };
+
+    this.registrationService
+      .createRegistration(registrationData)
+      .subscribe({
+        next: (response) => {
+          this.isRegistering = false;
+          this.registrationSuccess = true;
+
+          this.registrationMessage =
+            response.message ||
+            'Etkinlik kaydı başarıyla oluşturuldu.';
+
+          if (
+            response.remaining_ticket_quantity !==
+            undefined
+          ) {
+            this.selectedTicket!.available_quantity =
+              response.remaining_ticket_quantity;
+          }
+
+          this.changeDetector.detectChanges();
+        },
+        error: (error) => {
+          this.isRegistering = false;
+          this.registrationSuccess = false;
+
+          this.registrationMessage =
+            error.error?.message ||
+            error.error?.error ||
+            'Etkinlik kaydı oluşturulamadı.';
+
+          console.error(
+            'Etkinlik kayıt hatası:',
+            error
+          );
+
+          this.changeDetector.detectChanges();
+        }
+      });
   }
 
   goBack(): void {

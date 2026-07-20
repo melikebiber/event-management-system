@@ -1,4 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  OnInit
+} from '@angular/core';
+
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -25,9 +30,13 @@ export class Events implements OnInit {
   categories: string[] = [];
   cities: string[] = [];
 
+  isLoading = true;
+  errorMessage = '';
+
   constructor(
     private eventService: EventService,
-    private router: Router
+    private router: Router,
+    private changeDetector: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -35,17 +44,32 @@ export class Events implements OnInit {
   }
 
   getEvents(): void {
+    this.isLoading = true;
+    this.errorMessage = '';
+
     this.eventService.getAllEvents().subscribe({
       next: (response) => {
-        this.events = response.data;
-        this.filteredEvents = response.data;
+        this.events = response.data ?? [];
+        this.filteredEvents = [...this.events];
 
         this.createFilterOptions();
 
+        this.isLoading = false;
+
         console.log('Etkinlikler:', this.events);
+
+        this.changeDetector.detectChanges();
       },
+
       error: (error: unknown) => {
         console.error('Etkinlikler alınamadı:', error);
+
+        this.events = [];
+        this.filteredEvents = [];
+        this.errorMessage = 'Etkinlikler alınamadı.';
+        this.isLoading = false;
+
+        this.changeDetector.detectChanges();
       }
     });
   }
@@ -53,24 +77,23 @@ export class Events implements OnInit {
   createFilterOptions(): void {
     this.categories = [
       ...new Set(
-        this.events.map(
-          event => event.category.category_name
-        )
+        this.events
+          .filter(event => event.category)
+          .map(event => event.category.category_name)
       )
     ];
 
     this.cities = [
       ...new Set(
-        this.events.map(
-          event => event.location.city
-        )
+        this.events
+          .filter(event => event.location)
+          .map(event => event.location.city)
       )
     ];
   }
 
   filterEvents(): void {
     this.filteredEvents = this.events.filter(event => {
-
       const categoryMatches =
         this.selectedCategory === '' ||
         event.category.category_name === this.selectedCategory;
@@ -92,7 +115,7 @@ export class Events implements OnInit {
     this.selectedCity = '';
     this.selectedDate = '';
 
-    this.filteredEvents = this.events;
+    this.filteredEvents = [...this.events];
   }
 
   goToEventDetail(eventId: number): void {

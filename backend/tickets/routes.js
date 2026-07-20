@@ -14,7 +14,10 @@ const TicketController = require('./controller');
  *       500:
  *         description: Sunucu hatası
  */
-router.get('/', TicketController.getAllTickets);
+router.get(
+  '/',
+  TicketController.getAllTickets
+);
 
 /**
  * @swagger
@@ -55,7 +58,36 @@ router.get('/', TicketController.getAllTickets);
  *       500:
  *         description: Sunucu hatası
  */
-router.post('/', TicketController.createTicket);
+router.post(
+  '/',
+  TicketController.createTicket
+);
+
+/**
+ * @swagger
+ * /tickets/event/{eventId}:
+ *   get:
+ *     summary: Bir etkinliğe ait biletleri listeler
+ *     tags:
+ *       - Tickets
+ *     parameters:
+ *       - in: path
+ *         name: eventId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Etkinliğin biletleri listelendi
+ *       404:
+ *         description: Etkinlik bulunamadı
+ *       500:
+ *         description: Sunucu hatası
+ */
+router.get(
+  '/event/:eventId',
+  TicketController.getTicketsByEventId
+);
 
 /**
  * @swagger
@@ -75,8 +107,13 @@ router.post('/', TicketController.createTicket);
  *         description: Bilet getirildi
  *       404:
  *         description: Bilet bulunamadı
+ *       500:
+ *         description: Sunucu hatası
  */
-router.get('/:ticketId', TicketController.getTicketById);
+router.get(
+  '/:ticketId',
+  TicketController.getTicketById
+);
 
 /**
  * @swagger
@@ -117,8 +154,13 @@ router.get('/:ticketId', TicketController.getTicketById);
  *         description: Girilen bilgiler geçersiz
  *       404:
  *         description: Bilet bulunamadı
+ *       500:
+ *         description: Sunucu hatası
  */
-router.put('/:ticketId', TicketController.updateTicket);
+router.put(
+  '/:ticketId',
+  TicketController.updateTicket
+);
 
 /**
  * @swagger
@@ -140,7 +182,12 @@ router.put('/:ticketId', TicketController.updateTicket);
  *         description: Bilet bulunamadı
  *       409:
  *         description: Bilete bağlı kayıt bulunduğu için silinemedi
+ *       500:
+ *         description: Sunucu hatası
  */
-router.delete('/:ticketId', TicketController.deleteTicket);
+router.delete(
+  '/:ticketId',
+  TicketController.deleteTicket
+);
 
 module.exports = router;

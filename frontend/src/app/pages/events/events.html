@@ -79,6 +79,23 @@
     </div>
 
   </div>
+<div
+  class="loading-state"
+  *ngIf="isLoading"
+>
+  <p>Etkinlikler yükleniyor...</p>
+</div>
+
+<div
+  class="empty-state"
+  *ngIf="!isLoading && errorMessage"
+>
+  <div class="empty-icon">!</div>
+
+  <h3>Bir sorun oluştu</h3>
+
+  <p>{{ errorMessage }}</p>
+</div>
 
   <!-- Sonuç bilgisi -->
   <div class="results-header">
@@ -94,7 +111,11 @@
   <!-- Etkinlik bulunamadığında -->
   <div
     class="empty-state"
-    *ngIf="filteredEvents.length === 0"
+    *ngIf="
+  !isLoading &&
+  !errorMessage &&
+  filteredEvents.length === 0
+"
   >
     <div class="empty-icon">!</div>
 
@@ -108,7 +129,11 @@
   <!-- Etkinlik kartları -->
   <div
     class="events-grid"
-    *ngIf="filteredEvents.length > 0"
+    *ngIf="
+  !isLoading &&
+  !errorMessage &&
+  filteredEvents.length > 0
+"
   >
 
     <article

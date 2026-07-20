@@ -118,19 +118,83 @@
 
       </div>
 
-      <div class="organizer-card">
+      <div class="side-column">
 
-        <h2>Düzenleyen</h2>
+        <div class="organizer-card">
 
-        <strong>
-          {{ event.organizer.name }}
-          {{ event.organizer.surname }}
-        </strong>
+          <h2>Düzenleyen</h2>
 
-        <p>
-          Bu etkinlik hakkında detaylı bilgi almak için etkinlik
-          düzenleyicisiyle iletişime geçebilirsin.
-        </p>
+          <strong>
+            {{ event.organizer.name }}
+            {{ event.organizer.surname }}
+          </strong>
+
+          <p>
+            Bu etkinlik hakkında detaylı bilgi almak için etkinlik
+            düzenleyicisiyle iletişime geçebilirsin.
+          </p>
+
+        </div>
+
+        <div class="registration-card">
+
+          <h2>Etkinliğe Katıl</h2>
+
+          <ng-container *ngIf="selectedTicket; else noTicket">
+
+            <div class="ticket-information">
+
+              <div>
+                <span>Bilet türü</span>
+                <strong>{{ selectedTicket.ticket_type }}</strong>
+              </div>
+
+              <div>
+                <span>Kalan kontenjan</span>
+                <strong>
+                  {{ selectedTicket.available_quantity }} kişi
+                </strong>
+              </div>
+
+            </div>
+
+            <button
+              type="button"
+              class="register-button"
+              (click)="registerForEvent()"
+              [disabled]="
+                isRegistering ||
+                selectedTicket.available_quantity <= 0 ||
+                event.status !== 'active'
+              "
+            >
+              {{
+                isRegistering
+                  ? 'Kayıt oluşturuluyor...'
+                  : selectedTicket.available_quantity <= 0
+                    ? 'Kontenjan Doldu'
+                    : 'Etkinliğe Katıl'
+              }}
+            </button>
+
+          </ng-container>
+
+          <ng-template #noTicket>
+            <p class="no-ticket-message">
+              Bu etkinlik için uygun bilet bulunamadı.
+            </p>
+          </ng-template>
+
+          <p
+            class="registration-message"
+            *ngIf="registrationMessage"
+            [class.success]="registrationSuccess"
+            [class.error]="!registrationSuccess"
+          >
+            {{ registrationMessage }}
+          </p>
+
+        </div>
 
       </div>
 
