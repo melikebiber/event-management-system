@@ -1,55 +1,75 @@
 <header class="navbar">
-  <a class="logo" routerLink="/">
-    Etkinlik Yönetimi
-  </a>
 
-  <nav class="nav-links">
+  <div class="navbar-container">
+
     <a
+      class="logo"
       routerLink="/"
-      routerLinkActive="active"
-      [routerLinkActiveOptions]="{ exact: true }"
     >
-      Ana Sayfa
+      <span class="logo-mark">E</span>
+
+      <span class="logo-text">
+        Etkinlik Yönetimi
+      </span>
     </a>
 
-    <a
-      routerLink="/events"
-      routerLinkActive="active"
-    >
-      Etkinlikler
-    </a>
+    <nav class="nav-links">
 
-    @if (authService.isLoggedIn()) {
-  <button
-    type="button"
-    class="logout-button"
-    (click)="logout()"
-  >
-    Çıkış Yap
-  </button>
-} @else {
-  <a
-    routerLink="/login"
-    routerLinkActive="active"
-  >
-    Giriş Yap
-  </a>
+      <a
+        routerLink="/"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
+        Ana Sayfa
+      </a>
 
-  <a
-    routerLink="/register"
-    routerLinkActive="active"
-  >
-    Kayıt Ol
-  </a>
-}
+      <a
+        routerLink="/events"
+        routerLinkActive="active"
+      >
+        Etkinlikler
+      </a>
 
-    <a
-      routerLink="/admin"
-      routerLinkActive="active"
-    >
-      Admin
-    </a>
-  </nav>
+      @if (authService.isLoggedIn()) {
+
+        <button
+          type="button"
+          class="logout-button"
+          (click)="logout()"
+        >
+          Çıkış Yap
+        </button>
+
+      } @else {
+
+        <a
+          routerLink="/login"
+          routerLinkActive="active"
+        >
+          Giriş Yap
+        </a>
+
+        <a
+          class="register-link"
+          routerLink="/register"
+          routerLinkActive="active"
+        >
+          Kayıt Ol
+        </a>
+
+      }
+
+      <a
+        routerLink="/admin"
+        routerLinkActive="active"
+      >
+        Admin
+      </a>
+
+    </nav>
+
+  </div>
+
 </header>
 
 <main class="page-content">

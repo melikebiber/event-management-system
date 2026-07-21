@@ -1,22 +1,498 @@
-<section class="hero">
-  <div class="hero-content">
-    <span class="hero-label">Etkinlik Yönetim Platformu</span>
+<!-- HERO -->
+<section class="home-hero">
+  <div class="home-hero-container">
 
-    <h1>Yeni etkinlikleri keşfet ve kolayca kayıt ol</h1>
+    <!-- Sol dekorasyonlar -->
+    <div class="hero-side hero-side-left" aria-hidden="true">
+      <div class="activity-illustration activity-nearby">
+        <div class="activity-shape">
+          <span>🧑‍💻</span>
+          <span>🧑‍🎨</span>
+          <span>🧑‍🎓</span>
+        </div>
 
-    <p>
-      Konferanslardan atölyelere kadar farklı etkinlikleri incele,
-      ayrıntılarını görüntüle ve katılım kaydını hızlıca oluştur.
-    </p>
+        <span class="activity-label">
+          📍 Yakınında
+        </span>
+      </div>
 
-    <div class="hero-actions">
-      <a routerLink="/events" class="primary-button">
-        Etkinlikleri Keşfet
-      </a>
+      <div class="activity-connector"></div>
 
-      <a routerLink="/register" class="secondary-button">
-        Kayıt Ol
+      <div class="activity-illustration activity-art">
+        <div class="activity-shape">
+          <span>💃</span>
+          <span>🎨</span>
+        </div>
+
+        <span class="activity-label">
+          Dans ve sanat
+        </span>
+      </div>
+    </div>
+
+    <!-- Orta içerik -->
+    <div class="hero-main">
+      <span class="hero-eyebrow">
+        Etkinlik Yönetim Platformu
+      </span>
+
+      <h1>
+        İlgi alanların yeni deneyimlere dönüşüyor.
+      </h1>
+
+      <p class="hero-description">
+        Sana uygun etkinlikleri keşfet, detaylarını incele ve
+        kolayca katılım kaydı oluştur.
+      </p>
+
+      <div class="hero-discovery-panel">
+        <div class="discovery-item">
+          <span class="discovery-icon">⌕</span>
+
+          <div>
+            <span class="discovery-label">Etkinlik</span>
+            <strong>İlgi alanına göre keşfet</strong>
+          </div>
+        </div>
+
+        <div class="discovery-divider"></div>
+
+        <div class="discovery-item">
+          <span class="discovery-icon">📍</span>
+
+          <div>
+            <span class="discovery-label">Konum</span>
+            <strong>Şehrindeki etkinlikler</strong>
+          </div>
+        </div>
+
+        <a
+          routerLink="/events"
+          class="discovery-button"
+        >
+          Etkinlik Bul
+        </a>
+      </div>
+
+      <div class="hero-actions">
+        <a
+          routerLink="/register"
+          class="hero-primary-button"
+        >
+          Ücretsiz Kayıt Ol
+        </a>
+
+        <a
+          routerLink="/events"
+          class="hero-secondary-link"
+        >
+          Tüm etkinlikleri gör
+          <span>→</span>
+        </a>
+      </div>
+
+      <div class="hero-benefits">
+        <div class="hero-benefit">
+          <strong>Kolay</strong>
+          <span>Etkinlik kaydı</span>
+        </div>
+
+        <div class="benefit-divider"></div>
+
+        <div class="hero-benefit">
+          <strong>Güncel</strong>
+          <span>Etkinlik seçenekleri</span>
+        </div>
+
+        <div class="benefit-divider"></div>
+
+        <div class="hero-benefit">
+          <strong>Ücretsiz</strong>
+          <span>Platform üyeliği</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sağ dekorasyonlar -->
+    <div class="hero-side hero-side-right" aria-hidden="true">
+      <div class="activity-illustration activity-talk">
+        <div class="activity-shape">
+          <span>🗣️</span>
+          <span>😊</span>
+          <span>🎤</span>
+        </div>
+
+        <span class="activity-label">
+          Konuşma kulübü
+        </span>
+      </div>
+
+      <div class="activity-connector"></div>
+
+      <div class="activity-illustration activity-weekly">
+        <div class="activity-shape">
+          <span>🍳</span>
+          <span>👫</span>
+        </div>
+
+        <span class="activity-label">
+          Her hafta
+        </span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- YAKLAŞAN ETKİNLİKLER -->
+<section class="upcoming-section">
+  <div class="section-container">
+
+    <div class="section-header">
+      <div>
+        <span class="section-label">
+          YAKLAŞAN ETKİNLİKLER
+        </span>
+
+        <h2>
+          Kaçırmak istemeyeceğin etkinlikler
+        </h2>
+      </div>
+
+      <a routerLink="/events">
+        Tüm etkinlikleri görüntüle →
       </a>
     </div>
+
+    <div
+      class="section-state"
+      *ngIf="isLoading"
+    >
+      Etkinlikler yükleniyor...
+    </div>
+
+    <div
+      class="section-state error"
+      *ngIf="!isLoading && errorMessage"
+    >
+      {{ errorMessage }}
+    </div>
+
+    <div
+      class="section-state"
+      *ngIf="
+        !isLoading &&
+        !errorMessage &&
+        upcomingEvents.length === 0
+      "
+    >
+      Yaklaşan etkinlik bulunamadı.
+    </div>
+
+    <div
+      class="upcoming-grid"
+      *ngIf="
+        !isLoading &&
+        !errorMessage &&
+        upcomingEvents.length > 0
+      "
+    >
+      <a
+        class="upcoming-card"
+        *ngFor="let event of upcomingEvents"
+        [routerLink]="['/events', event.event_id]"
+      >
+        <div
+          class="upcoming-card-image"
+          [class.conference-image]="
+            event.category.category_name === 'Konferans'
+          "
+          [class.workshop-image]="
+            event.category.category_name === 'Workshop'
+          "
+          [class.technology-image]="
+            event.category.category_name === 'Teknoloji'
+          "
+          [class.education-image]="
+            event.category.category_name === 'Eğitim'
+          "
+        >
+          <span class="upcoming-category">
+            {{ event.category.category_name }}
+          </span>
+        </div>
+
+        <div class="upcoming-card-content">
+          <h3>
+            {{ event.title }}
+          </h3>
+
+          <p class="upcoming-date">
+            {{ event.event_date }} · {{ event.start_time }}
+          </p>
+
+          <p class="upcoming-location">
+            📍 {{ event.location.location_name }},
+            {{ event.location.city }}
+          </p>
+
+          <strong class="upcoming-detail">
+            Detayları Gör →
+          </strong>
+        </div>
+      </a>
+    </div>
+
+  </div>
+</section>
+
+<!-- KATEGORİLER -->
+<!-- KATEGORİLER -->
+<section class="categories-section">
+  <div class="section-container">
+
+    <div class="section-header">
+      <div>
+        <span class="section-label">
+          KATEGORİLER
+        </span>
+
+        <h2>
+          Popüler kategorileri keşfet
+        </h2>
+      </div>
+
+      <a routerLink="/events">
+        Tüm etkinlikleri görüntüle →
+      </a>
+    </div>
+
+    <div class="category-grid">
+
+      <a
+        class="category-card category-technology"
+        routerLink="/events"
+      >
+        <strong>Teknoloji</strong>
+
+        <div class="category-card-bottom">
+          <span class="category-arrow">↗</span>
+          <span class="category-icon">💻</span>
+        </div>
+      </a>
+
+      <a
+        class="category-card category-education"
+        routerLink="/events"
+      >
+        <strong>Eğitim</strong>
+
+        <div class="category-card-bottom">
+          <span class="category-arrow">↗</span>
+          <span class="category-icon">🎓</span>
+        </div>
+      </a>
+
+      <a
+        class="category-card category-art"
+        routerLink="/events"
+      >
+        <strong>Kültür ve Sanat</strong>
+
+        <div class="category-card-bottom">
+          <span class="category-arrow">↗</span>
+          <span class="category-icon">🎭</span>
+        </div>
+      </a>
+
+      <a
+        class="category-card category-sport"
+        routerLink="/events"
+      >
+        <strong>Spor</strong>
+
+        <div class="category-card-bottom">
+          <span class="category-arrow">↗</span>
+          <span class="category-icon">⚽</span>
+        </div>
+      </a>
+
+      <a
+        class="category-card category-social"
+        routerLink="/events"
+      >
+        <strong>Sosyal Etkinlikler</strong>
+
+        <div class="category-card-bottom">
+          <span class="category-arrow">↗</span>
+          <span class="category-icon">🎉</span>
+        </div>
+      </a>
+
+      <a
+        class="category-card category-health"
+        routerLink="/events"
+      >
+        <strong>Sağlık ve Yaşam</strong>
+
+        <div class="category-card-bottom">
+          <span class="category-arrow">↗</span>
+          <span class="category-icon">💜</span>
+        </div>
+      </a>
+
+    </div>
+
+  </div>
+</section>
+<!-- NASIL ÇALIŞIR -->
+<section class="how-it-works-section">
+  <div class="section-container">
+
+    <div class="centered-section-header">
+      <span class="section-label">
+        NASIL ÇALIŞIR?
+      </span>
+
+      <h2>
+        Etkinliklere katılmak çok kolay
+      </h2>
+
+      <p>
+        Sana uygun etkinliği bul, ayrıntılarını incele
+        ve birkaç adımda katılım kaydını oluştur.
+      </p>
+    </div>
+
+    <div class="how-flow">
+
+      <article class="flow-card flow-card-left">
+        <div class="flow-icon">
+          🔎
+        </div>
+
+        <div class="flow-content">
+          <span class="flow-step">
+            01
+          </span>
+
+          <h3>
+            Etkinlikleri keşfet
+          </h3>
+
+          <p>
+            Kategori, şehir ve tarih filtrelerini kullanarak
+            sana uygun etkinlikleri hızlıca bul.
+          </p>
+
+          <a routerLink="/events">
+            Keşfetmeye başla →
+          </a>
+        </div>
+      </article>
+
+      <div class="flow-line flow-line-top" aria-hidden="true"></div>
+
+      <article class="flow-card flow-card-right">
+        <div class="flow-icon">
+          📋
+        </div>
+
+        <div class="flow-content">
+          <span class="flow-step">
+            02
+          </span>
+
+          <h3>
+            Detayları incele
+          </h3>
+
+          <p>
+            Etkinliğin tarihini, saatini, konumunu ve
+            kalan kontenjan bilgisini görüntüle.
+          </p>
+        </div>
+      </article>
+
+      <div class="flow-line flow-line-bottom" aria-hidden="true"></div>
+
+      <article class="flow-card flow-card-center">
+        <div class="flow-icon">
+          🎟️
+        </div>
+
+        <div class="flow-content">
+          <span class="flow-step">
+            03
+          </span>
+
+          <h3>
+            Etkinliğe katıl
+          </h3>
+
+          <p>
+            Giriş yaptıktan sonra tek butonla
+            katılım kaydını oluştur ve yerini ayır.
+          </p>
+
+          <a routerLink="/register">
+            Ücretsiz kayıt ol →
+          </a>
+        </div>
+      </article>
+
+    </div>
+
+  </div>
+</section>
+
+<!-- KATILIM ÇAĞRISI -->
+<section class="join-section">
+  <div class="section-container">
+
+    <div class="join-card">
+      <div class="join-shape join-shape-left"></div>
+      <div class="join-shape join-shape-right"></div>
+
+      <div class="join-avatar join-avatar-left">
+        🎉
+      </div>
+
+      <div class="join-avatar join-avatar-right">
+        ✨
+      </div>
+
+      <div class="join-content">
+        <span class="section-label">
+          ETKİNLİK YÖNETİMİ’NE KATIL
+        </span>
+
+        <h2>
+          Yeni deneyimlere bir adım daha yaklaş
+        </h2>
+
+        <p>
+          Hesabını oluştur, güncel etkinlikleri keşfet ve
+          katılmak istediğin etkinliklerde kolayca yerini ayır.
+        </p>
+
+        <div class="join-actions">
+          <a
+            routerLink="/register"
+            class="join-primary-button"
+          >
+            Ücretsiz Kayıt Ol
+          </a>
+
+          <a
+            routerLink="/events"
+            class="join-secondary-button"
+          >
+            Etkinlikleri İncele
+          </a>
+        </div>
+      </div>
+    </div>
+
   </div>
 </section>
