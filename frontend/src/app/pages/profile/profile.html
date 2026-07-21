@@ -1,0 +1,234 @@
+<section class="profile-page">
+  <div class="profile-container">
+
+    <header class="profile-header">
+      <div>
+        <span class="page-label">HESABIM</span>
+
+        <h1>Profilim</h1>
+
+        <p>
+          Hesap bilgilerini görüntüle ve etkinlik kayıtlarını yönet.
+        </p>
+      </div>
+
+      <a
+        routerLink="/events"
+        class="discover-button"
+      >
+        Etkinlik keşfet
+      </a>
+    </header>
+
+    <div
+      *ngIf="errorMessage"
+      class="message-box error-message"
+    >
+      {{ errorMessage }}
+    </div>
+<div
+  *ngIf="isLoading"
+  class="profile-loading"
+>
+  <div class="loading-spinner"></div>
+
+  <p>Profil bilgilerin yükleniyor...</p>
+</div>
+
+    <div
+      *ngIf="currentUser"
+      class="profile-layout"
+    >
+
+      <aside class="profile-summary-card">
+
+        <div class="profile-avatar">
+          {{ userInitial }}
+        </div>
+
+        <h2>
+          {{ fullName }}
+        </h2>
+
+       <p class="profile-username">
+  {{ currentUser.email }}
+</p>
+
+        <span class="role-badge">
+          {{ roleText }}
+        </span>
+
+        <div class="summary-actions">
+
+          <a
+            routerLink="/my-events"
+            class="primary-button"
+          >
+            Etkinliklerime git
+          </a>
+
+          <button
+            type="button"
+            class="logout-button"
+            (click)="logout()"
+          >
+            Çıkış yap
+          </button>
+
+        </div>
+
+      </aside>
+
+      <div class="profile-content">
+
+        <section class="information-card">
+
+          <div class="card-heading">
+            <div>
+              <span class="card-label">
+                KULLANICI BİLGİLERİ
+              </span>
+
+              <h2>Hesap detayları</h2>
+            </div>
+
+            <span class="card-icon">
+              👤
+            </span>
+          </div>
+
+          <div class="information-grid">
+
+            <div class="information-item">
+              <span class="information-label">
+                Ad
+              </span>
+
+              <strong>
+                {{ currentUser.name || 'Belirtilmedi' }}
+              </strong>
+            </div>
+
+            <div class="information-item">
+              <span class="information-label">
+                Soyad
+              </span>
+
+              <strong>
+                {{ currentUser.surname || 'Belirtilmedi' }}
+              </strong>
+            </div>
+
+           <div class="information-item">
+  <span class="information-label">
+    Telefon
+  </span>
+
+  <strong>
+    {{ currentUser.phone || 'Belirtilmedi' }}
+  </strong>
+</div>
+            <div class="information-item">
+              <span class="information-label">
+                E-posta
+              </span>
+
+              <strong>
+                {{ currentUser.email || 'Belirtilmedi' }}
+              </strong>
+            </div>
+
+            <div class="information-item">
+              <span class="information-label">
+                Kullanıcı numarası
+              </span>
+
+              <strong>
+                #{{ currentUser.user_id }}
+              </strong>
+            </div>
+
+            <div class="information-item">
+              <span class="information-label">
+                Hesap türü
+              </span>
+
+              <strong>
+                {{ roleText }}
+              </strong>
+            </div>
+
+          </div>
+
+        </section>
+
+        <section class="quick-actions-card">
+
+          <div class="card-heading">
+            <div>
+              <span class="card-label">
+                HIZLI İŞLEMLER
+              </span>
+
+              <h2>Hesabını yönet</h2>
+            </div>
+
+            <span class="card-icon">
+              ⚡
+            </span>
+          </div>
+
+          <div class="quick-actions-grid">
+
+            <a
+              routerLink="/my-events"
+              class="quick-action"
+            >
+              <span class="quick-action-icon">
+                🎟️
+              </span>
+
+              <div>
+                <strong>Etkinliklerim</strong>
+
+                <p>
+                  Katılım kayıtlarını görüntüle ve yönet.
+                </p>
+              </div>
+
+              <span class="quick-action-arrow">
+                →
+              </span>
+            </a>
+
+            <a
+              routerLink="/events"
+              class="quick-action"
+            >
+              <span class="quick-action-icon">
+                🔎
+              </span>
+
+              <div>
+                <strong>Etkinlik keşfet</strong>
+
+                <p>
+                  Yeni ve yaklaşan etkinlikleri incele.
+                </p>
+              </div>
+
+              <span class="quick-action-arrow">
+                →
+              </span>
+            </a>
+
+          </div>
+
+        </section>
+
+      </div>
+
+    </div>
+
+  </div>
+</section>
