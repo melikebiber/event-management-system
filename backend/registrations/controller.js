@@ -3,11 +3,15 @@ const defineRegistration = require('../common/models/Registration');
 const defineUser = require('../common/models/User');
 const defineEvent = require('../common/models/Event');
 const defineTicket = require('../common/models/Ticket');
+const defineCategory = require('../common/models/Category');
+const defineLocation = require('../common/models/Location');
 
 const Registration = defineRegistration(sequelize);
 const User = defineUser(sequelize);
 const Event = defineEvent(sequelize);
 const Ticket = defineTicket(sequelize);
+const Category = defineCategory(sequelize);
+const Location = defineLocation(sequelize);
 
 // Modeller arasındaki ilişkiler
 if (!Registration.associations.user) {
@@ -28,6 +32,19 @@ if (!Registration.associations.ticket) {
   Registration.belongsTo(Ticket, {
     foreignKey: 'ticket_id',
     as: 'ticket'
+  });
+}
+if (!Event.associations.category) {
+  Event.belongsTo(Category, {
+    foreignKey: 'category_id',
+    as: 'category'
+  });
+}
+
+if (!Event.associations.location) {
+  Event.belongsTo(Location, {
+    foreignKey: 'location_id',
+    as: 'location'
   });
 }
 
@@ -217,6 +234,7 @@ exports.createRegistration = async (req, res) => {
   }
 };
 // Belirli bir kullanıcının kayıtlarını listeler
+// Belirli bir kullanıcının kayıtlarını listeler
 exports.getUserRegistrations = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -225,19 +243,44 @@ exports.getUserRegistrations = async (req, res) => {
       where: {
         user_id: userId
       },
+
       include: [
         {
           model: Event,
           as: 'event',
+
           attributes: [
             'event_id',
             'title',
+            'description',
             'event_date',
             'start_time',
             'end_time',
             'status'
+          ],
+
+          include: [
+            {
+              model: Category,
+              as: 'category',
+              attributes: [
+                'category_id',
+                'category_name'
+              ]
+            },
+            {
+              model: Location,
+              as: 'location',
+              attributes: [
+                'location_id',
+                'location_name',
+                'city',
+                'district'
+              ]
+            }
           ]
         },
+
         {
           model: Ticket,
           as: 'ticket',
@@ -247,7 +290,10 @@ exports.getUserRegistrations = async (req, res) => {
           ]
         }
       ],
-      order: [['registration_date', 'DESC']]
+
+      order: [
+        ['registration_date', 'DESC']
+      ]
     });
 
     return res.status(200).json({
@@ -255,8 +301,15 @@ exports.getUserRegistrations = async (req, res) => {
       data: registrations
     });
   } catch (error) {
+    console.error(
+      'Kullanıcı kayıtları alınamadı:',
+      error
+    );
+
     return res.status(500).json({
       success: false,
+      message:
+        'Kullanıcının etkinlik kayıtları alınamadı.',
       error: error.message
     });
   }

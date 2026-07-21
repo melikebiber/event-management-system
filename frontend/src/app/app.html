@@ -32,6 +32,13 @@
 
       @if (authService.isLoggedIn()) {
 
+        <a
+          routerLink="/my-events"
+          routerLinkActive="active"
+        >
+          Etkinliklerim
+        </a>
+
         <button
           type="button"
           class="logout-button"

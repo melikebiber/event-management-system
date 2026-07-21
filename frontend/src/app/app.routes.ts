@@ -5,6 +5,7 @@ import { Register } from './pages/register/register';
 import { Events } from './pages/events/events';
 import { EventDetail } from './pages/event-detail/event-detail';
 import { Admin } from './pages/admin/admin';
+import { MyEvents } from './pages/my-events/my-events';
 
 export const routes: Routes = [
   {
@@ -30,5 +31,10 @@ export const routes: Routes = [
   {
     path: 'admin',
     component: Admin
-  }
+  },
+  {
+  path: 'my-events',
+  component: MyEvents
+},
+  
 ];
