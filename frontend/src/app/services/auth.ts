@@ -14,11 +14,21 @@ interface SignupRequest {
   phone: string;
 }
 
+interface LoginUser {
+  user_id?: number;
+  id?: number;
+  name?: string;
+  surname?: string;
+  email?: string;
+  phone?: string;
+  role?: string;
+}
+
 interface LoginResponse {
   success?: boolean;
   token?: string;
   message?: string;
-  user?: unknown;
+  user?: LoginUser;
 }
 interface SignupResponse {
   success?: boolean;

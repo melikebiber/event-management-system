@@ -1,15 +1,22 @@
 import { Component } from '@angular/core';
+
 import {
-  FormControl, //tek bir form alanını yönetir. Örneğin e-posta kutusu bir FormControl olur.
-  FormGroup, //birden fazla form alanını tek form altında toplar.
-  ReactiveFormsModule, //HTML içinde [formGroup] ve formControlName kullanabilmemizi sağlar.
-  Validators //kullanıcının girdiği verileri kontrol eder.
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators
 } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+
+import {
+  Router,
+  RouterLink
+} from '@angular/router';
+
 import { Auth } from '../../services/auth';
 
 @Component({
   selector: 'app-login',
+  standalone: true,
   imports: [
     ReactiveFormsModule,
     RouterLink
@@ -18,20 +25,21 @@ import { Auth } from '../../services/auth';
   styleUrl: './login.css'
 })
 export class Login {
-  loginMessage = ''; //Backend'den gelen başarılı veya hatalı giriş mesajını tutar.
-  isLoading = false; //Backend isteğinin devam edip etmediğini kontrol eder.
 
-  loginForm = new FormGroup({ //loginForm adında bir form grubu oluşturduk.
+  loginMessage = '';
+  isLoading = false;
+
+  loginForm = new FormGroup({
     email: new FormControl('', {
-      nonNullable: true, //Bu alanın değerinin null olmasını engeller.
+      nonNullable: true,
       validators: [
-        Validators.required, //Alan boş bırakılamaz.
-        Validators.email //Girilen metin e-posta biçiminde olmalıdır.
+        Validators.required,
+        Validators.email
       ]
     }),
 
     password: new FormControl('', {
-      nonNullable: true, //Şifre değerinin null olmasını engeller.
+      nonNullable: true,
       validators: [
         Validators.required,
         Validators.minLength(6)
@@ -41,48 +49,100 @@ export class Login {
 
   constructor(
     private authService: Auth,
-  private router: Router) {}
+    private router: Router
+  ) {}
 
-  onSubmit() { //Kullanıcı giriş butonuna bastığında bu fonksiyonu çalıştıracağız.
+  onSubmit(): void {
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
       return;
     }
 
-    this.isLoading = true; //Backend isteği başladığında yükleniyor durumunu aktif eder.
-    this.loginMessage = ''; //Daha önce gösterilmiş mesajı temizler.
+    this.isLoading = true;
+    this.loginMessage = '';
 
-    const loginData = this.loginForm.getRawValue(); //Formdaki email ve password değerlerini alır.
+    const loginData =
+      this.loginForm.getRawValue();
 
-    console.log('Form bilgileri:', loginData);
+    console.log(
+      'Form bilgileri:',
+      loginData
+    );
 
-    this.authService.login(loginData).subscribe({
-      next: (response) => {
-        //Backend başarılı bir cevap gönderirse bu bölüm çalışır.
-        this.isLoading = false;
-        this.loginMessage = 'Giriş işlemi başarılı.';
+    this.authService
+      .login(loginData)
+      .subscribe({
+        next: (response) => {
+          this.isLoading = false;
 
-        console.log('Backend cevabı:', response);
+          console.log(
+            'Backend cevabı:',
+            response
+          );
 
-        if (response.token) {
-          //Backend JWT token gönderirse tarayıcının localStorage alanına kaydeder.
-          localStorage.setItem('token', response.token);
+          if (!response.token) {
+            this.loginMessage =
+              'Giriş başarılı ancak token alınamadı.';
+            return;
+          }
+
+          localStorage.setItem(
+            'token',
+            response.token
+          );
+
+          if (response.user) {
+            const userId =
+              response.user.user_id ??
+              response.user.id;
+
+            if (!userId) {
+              this.loginMessage =
+                'Kullanıcı ID bilgisi alınamadı.';
+
+              localStorage.removeItem('token');
+              return;
+            }
+
+            localStorage.setItem(
+              'currentUser',
+              JSON.stringify({
+                id: userId,
+                name: response.user.name,
+                surname: response.user.surname,
+                email: response.user.email,
+                phone: response.user.phone,
+                role: response.user.role
+              })
+            );
+          } else {
+            this.loginMessage =
+              'Kullanıcı bilgileri alınamadı.';
+
+            localStorage.removeItem('token');
+            return;
+          }
+
+          this.loginMessage =
+            response.message ??
+            'Giriş işlemi başarılı.';
 
           this.router.navigate(['/events']);
+        },
+
+        error: (error) => {
+          this.isLoading = false;
+
+          this.loginMessage =
+            error.error?.message ??
+            error.error?.error ??
+            'Giriş işlemi başarısız.';
+
+          console.error(
+            'Giriş hatası:',
+            error
+          );
         }
-      },
-
-      error: (error) => {
-        //Backend hata gönderirse veya sunucuya ulaşılamazsa bu bölüm çalışır.
-        this.isLoading = false;
-
-        this.loginMessage =
-          error.error?.message ||
-          error.error?.error ||
-          'Giriş işlemi başarısız.';
-
-        console.error('Giriş hatası:', error);
-      }
-    });
+      });
   }
 }
