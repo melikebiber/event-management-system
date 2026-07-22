@@ -202,25 +202,24 @@
         *ngFor="let event of upcomingEvents"
         [routerLink]="['/events', event.event_id]"
       >
-        <div
-          class="upcoming-card-image"
-          [class.conference-image]="
-            event.category.category_name === 'Konferans'
-          "
-          [class.workshop-image]="
-            event.category.category_name === 'Workshop'
-          "
-          [class.technology-image]="
-            event.category.category_name === 'Teknoloji'
-          "
-          [class.education-image]="
-            event.category.category_name === 'Eğitim'
-          "
-        >
-          <span class="upcoming-category">
-            {{ event.category.category_name }}
-          </span>
-        </div>
+        <div class="upcoming-card-image">
+
+  <img
+    [src]="
+      getEventImage(
+        event.category.category_name,
+        event.title
+      )
+    "
+    [alt]="event.title"
+    loading="lazy"
+  >
+
+  <span class="upcoming-category">
+    {{ event.category.category_name }}
+  </span>
+
+</div>
 
         <div class="upcoming-card-content">
           <h3>
@@ -391,7 +390,7 @@
         </div>
       </article>
 
-      <div class="flow-line flow-line-top" aria-hidden="true"></div>
+
 
       <article class="flow-card flow-card-right">
         <div class="flow-icon">
@@ -414,7 +413,6 @@
         </div>
       </article>
 
-      <div class="flow-line flow-line-bottom" aria-hidden="true"></div>
 
       <article class="flow-card flow-card-center">
         <div class="flow-icon">
