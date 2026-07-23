@@ -48,5 +48,10 @@ export const routes: Routes = [
   {
   path: 'profile',
   component: Profile
+},
+{
+  path: 'admin/events/:eventId/edit',
+  component: AdminEventForm,
+  canActivate: [adminGuard]
 }
 ];

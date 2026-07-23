@@ -1,6 +1,13 @@
 const router = require('express').Router();
 const EventController = require('./controller');
 
+const {
+  check
+} = require('../common/middlewares/IsAuthenticated');
+
+const {
+  has
+} = require('../common/middlewares/CheckPermission');
 /**
  * @swagger
  * /events:
@@ -97,7 +104,12 @@ router.get('/:eventId', EventController.getEventById);
  *       500:
  *         description: Sunucu hatası
  */
-router.post('/', EventController.createEvent);
+router.post(
+  '/',
+  check,
+  has('ADMIN'),
+  EventController.createEvent
+);
 
 /**
  * @swagger
@@ -160,7 +172,12 @@ router.post('/', EventController.createEvent);
  *       500:
  *         description: Sunucu hatası
  */
-router.put('/:eventId', EventController.updateEvent);
+router.put(
+  '/:eventId',
+  check,
+  has('ADMIN'),
+  EventController.updateEvent
+);
 
 /**
  * @swagger
@@ -183,6 +200,11 @@ router.put('/:eventId', EventController.updateEvent);
  *       500:
  *         description: Sunucu hatası
  */
-router.delete('/:eventId', EventController.deleteEvent);
+router.delete(
+  '/:eventId',
+  check,
+  has('ADMIN'),
+  EventController.deleteEvent
+);
 
 module.exports = router;

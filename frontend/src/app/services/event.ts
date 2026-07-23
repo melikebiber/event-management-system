@@ -47,4 +47,24 @@ createEvent(
     eventData
   );
 }
+updateEvent(
+  eventId: number,
+  eventData: {
+    title: string;
+    description: string;
+    event_date: string;
+    start_time: string;
+    end_time: string;
+    capacity: number;
+    status: string;
+    organizer_id: number;
+    category_id: number;
+    location_id: number;
+  }
+): Observable<any> {
+  return this.http.put<any>(
+    `${this.apiUrl}/${eventId}`,
+    eventData
+  );
+}
 }

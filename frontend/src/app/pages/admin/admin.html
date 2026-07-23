@@ -209,19 +209,22 @@
                     ]"
                   >
                     İncele
-                  </a>
+                  <a
+  class="edit-button"
+  [routerLink]="[
+    '/admin/events',
+    event.event_id,
+    'edit'
+  ]"
+>
+  Düzenle
+</a>
 
-                  <button
-                    type="button"
-                    class="edit-button"
-                  >
-                    Düzenle
-                  </button>
-
-                  <button
+                 <button
   type="button"
   class="delete-button"
   (click)="
+    $event.stopPropagation();
     deleteEvent(
       event.event_id,
       event.title

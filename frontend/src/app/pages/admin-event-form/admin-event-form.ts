@@ -14,6 +14,7 @@ import {
 } from '@angular/forms';
 
 import {
+  ActivatedRoute,
   Router,
   RouterLink
 } from '@angular/router';
@@ -60,6 +61,9 @@ export class AdminEventForm implements OnInit {
   showLocationForm = false;
 isCreatingLocation = false;
 locationErrorMessage = '';
+
+isEditMode = false;
+editingEventId: number | null = null;
 
   eventForm = new FormGroup({
     title: new FormControl('', {
@@ -175,17 +179,75 @@ locationErrorMessage = '';
   )
 });
 
-  constructor(
-    private categoryService: CategoryService,
-    private locationService: LocationService,
-    private eventService: EventService,
-    private router: Router,
-    private changeDetector: ChangeDetectorRef
-  ) {}
+ constructor(
+  private categoryService: CategoryService,
+  private locationService: LocationService,
+  private eventService: EventService,
+  private router: Router,
+  private activatedRoute: ActivatedRoute,
+  private changeDetector: ChangeDetectorRef
+) {}
 
   ngOnInit(): void {
-    this.loadFormOptions();
+  const eventId =
+    this.activatedRoute.snapshot.paramMap.get('eventId');
+
+  if (eventId) {
+    this.isEditMode = true;
+    this.editingEventId = Number(eventId);
   }
+
+  this.loadFormOptions();
+
+  if (
+    this.isEditMode &&
+    this.editingEventId !== null
+  ) {
+    this.loadEventForEdit(
+      this.editingEventId
+    );
+  }
+}
+loadEventForEdit(eventId: number): void {
+  this.eventService
+    .getEventById(eventId)
+    .subscribe({
+      next: (response) => {
+        const event =
+          response.data ?? response;
+
+        this.eventForm.patchValue({
+          title: event.title,
+          description: event.description,
+          event_date: event.event_date,
+          start_time: event.start_time,
+          end_time: event.end_time,
+          capacity: event.capacity,
+          status: event.status,
+          category_id:
+            event.category?.category_id ??
+            event.category_id,
+          location_id:
+            event.location?.location_id ??
+            event.location_id
+        });
+
+        this.changeDetector.detectChanges();
+      },
+
+      error: (error) => {
+        console.error(
+          'Etkinlik bilgileri alınamadı:',
+          error
+        );
+
+        this.errorMessage =
+          'Düzenlenecek etkinlik bilgileri yüklenemedi.';
+
+        this.changeDetector.detectChanges();
+      }
+    });
+}
 
   loadFormOptions(): void {
     this.isLoadingOptions = true;
@@ -330,41 +392,60 @@ locationErrorMessage = '';
       location_id: formData.location_id
     };
 
-    this.isSubmitting = true;
+   this.isSubmitting = true;
 
-    this.eventService
-      .createEvent(eventData)
-      .subscribe({
-        next: (response) => {
-          this.isSubmitting = false;
+const request =
+  this.isEditMode &&
+  this.editingEventId !== null
+    ? this.eventService.updateEvent(
+        this.editingEventId,
+        eventData
+      )
+    : this.eventService.createEvent(
+        eventData
+      );
 
-          this.successMessage =
-            response.message ??
-            'Etkinlik başarıyla oluşturuldu.';
+request.subscribe({
+  next: (response) => {
+    this.isSubmitting = false;
 
-          this.changeDetector.detectChanges();
+    this.successMessage =
+      response.message ??
+      (
+        this.isEditMode
+          ? 'Etkinlik başarıyla güncellendi.'
+          : 'Etkinlik başarıyla oluşturuldu.'
+      );
 
-          setTimeout(() => {
-            this.router.navigate(['/admin']);
-          }, 1000);
-        },
+    this.changeDetector.detectChanges();
 
-        error: (error) => {
-          console.error(
-            'Etkinlik oluşturulamadı:',
-            error
-          );
+    setTimeout(() => {
+      this.router.navigate(['/admin']);
+    }, 1000);
+  },
 
-          this.isSubmitting = false;
+  error: (error) => {
+    console.error(
+      this.isEditMode
+        ? 'Etkinlik güncellenemedi:'
+        : 'Etkinlik oluşturulamadı:',
+      error
+    );
 
-          this.errorMessage =
-            error.error?.message ??
-            error.error?.error ??
-            'Etkinlik oluşturulurken bir hata oluştu.';
+    this.isSubmitting = false;
 
-          this.changeDetector.detectChanges();
-        }
-      });
+    this.errorMessage =
+      error.error?.message ??
+      error.error?.error ??
+      (
+        this.isEditMode
+          ? 'Etkinlik güncellenirken bir hata oluştu.'
+          : 'Etkinlik oluşturulurken bir hata oluştu.'
+      );
+
+    this.changeDetector.detectChanges();
+  }
+});
   }
 toggleLocationForm(): void {
   this.showLocationForm =

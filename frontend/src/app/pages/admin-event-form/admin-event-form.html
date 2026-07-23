@@ -7,12 +7,21 @@
           YÖNETİM PANELİ
         </span>
 
-        <h1>Yeni Etkinlik Oluştur</h1>
+        <h1>
+  {{
+    isEditMode
+      ? 'Etkinliği Düzenle'
+      : 'Yeni Etkinlik Oluştur'
+  }}
+</h1>
 
         <p>
-          Etkinlik bilgilerini doldurarak sisteme yeni bir
-          etkinlik ekleyebilirsin.
-        </p>
+  {{
+    isEditMode
+      ? 'Etkinlik bilgilerini güncelleyebilirsin.'
+      : 'Etkinlik bilgilerini doldurarak sisteme yeni bir etkinlik ekleyebilirsin.'
+  }}
+</p>
       </div>
 
       <a
@@ -448,10 +457,18 @@
           [disabled]="isSubmitting"
         >
           {{
-            isSubmitting
-              ? 'Etkinlik oluşturuluyor...'
-              : 'Etkinliği Oluştur'
-          }}
+  isSubmitting
+    ? (
+        isEditMode
+          ? 'Etkinlik güncelleniyor...'
+          : 'Etkinlik oluşturuluyor...'
+      )
+    : (
+        isEditMode
+          ? 'Değişiklikleri Kaydet'
+          : 'Etkinliği Oluştur'
+      )
+}}
         </button>
 
       </footer>

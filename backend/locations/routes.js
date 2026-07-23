@@ -1,6 +1,13 @@
 const router = require('express').Router();
 const LocationController = require('./controller');
 
+const {
+  check
+} = require('../common/middlewares/IsAuthenticated');
+
+const {
+  has
+} = require('../common/middlewares/CheckPermission');
 /**
  * @swagger
  * /locations:
@@ -55,7 +62,12 @@ router.get('/', LocationController.getAllLocations);
  *       500:
  *         description: Sunucu hatası
  */
-router.post('/', LocationController.createLocation);
+router.post(
+  '/',
+  check,
+  has('ADMIN'),
+  LocationController.createLocation
+);
 
 /**
  * @swagger
@@ -119,7 +131,12 @@ router.get('/:locationId', LocationController.getLocationById);
  *       404:
  *         description: Konum bulunamadı
  */
-router.put('/:locationId', LocationController.updateLocation);
+router.put(
+  '/:locationId',
+  check,
+  has('ADMIN'),
+  LocationController.updateLocation
+);
 
 /**
  * @swagger
@@ -142,6 +159,10 @@ router.put('/:locationId', LocationController.updateLocation);
  *       409:
  *         description: Konuma bağlı etkinlik bulunduğu için silinemedi
  */
-router.delete('/:locationId', LocationController.deleteLocation);
-
+router.delete(
+  '/:locationId',
+  check,
+  has('ADMIN'),
+  LocationController.deleteLocation
+);
 module.exports = router;
