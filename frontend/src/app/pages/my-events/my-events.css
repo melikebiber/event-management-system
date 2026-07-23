@@ -182,66 +182,22 @@
 
 .card-image {
   position: relative;
-  display: flex;
   min-height: 100%;
-  align-items: center;
-  justify-content: center;
   overflow: hidden;
-  background:
-    radial-gradient(
-      circle at 25% 25%,
-      rgba(255, 255, 255, 0.9),
-      transparent 25%
-    ),
-    linear-gradient(145deg, #ffd9dc, #fff0e9);
+  background: #eeeeef;
 }
 
-.card-image::before,
-.card-image::after {
-  position: absolute;
-  border-radius: 50%;
-  content: '';
+.card-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  object-fit: cover;
+  transition: transform 0.35s ease;
 }
 
-.card-image::before {
-  top: -25px;
-  right: -30px;
-  width: 100px;
-  height: 100px;
-  background: rgba(246, 88, 88, 0.14);
-}
-
-.card-image::after {
-  bottom: -38px;
-  left: -32px;
-  width: 120px;
-  height: 120px;
-  background: rgba(255, 171, 92, 0.16);
-}
-
-.category-badge {
-  position: absolute;
-  z-index: 2;
-  top: 15px;
-  left: 15px;
-  max-width: calc(100% - 30px);
-  padding: 7px 10px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.9);
-  color: #55555a;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.image-icon {
-  position: relative;
-  z-index: 2;
-  font-size: 53px;
-  transform: rotate(-8deg);
+.registration-card:hover .card-image img {
+  transform: scale(1.05);
 }
 
 .card-content {

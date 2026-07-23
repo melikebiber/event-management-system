@@ -21,4 +21,30 @@ export class EventService {
   getEventById(id: number | string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/${id}`);
   }
+  // ID'ye göre etkinliği siler
+deleteEvent(id: number): Observable<any> {
+  return this.http.delete<any>(
+    `${this.apiUrl}/${id}`
+  );
+}
+// Yeni etkinlik oluşturur
+createEvent(
+  eventData: {
+    title: string;
+    description: string;
+    event_date: string;
+    start_time: string;
+    end_time: string;
+    capacity: number;
+    status: string;
+    organizer_id: number;
+    category_id: number;
+    location_id: number;
+  }
+): Observable<any> {
+  return this.http.post<any>(
+    this.apiUrl,
+    eventData
+  );
+}
 }

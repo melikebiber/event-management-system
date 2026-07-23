@@ -44,6 +44,14 @@
   >
     Profilim
   </a>
+  @if (isAdmin()) {
+  <a
+    routerLink="/admin"
+    routerLinkActive="active"
+  >
+    Admin
+  </a>
+}
         <button
           type="button"
           class="logout-button"
@@ -71,12 +79,6 @@
 
       }
 
-      <a
-        routerLink="/admin"
-        routerLinkActive="active"
-      >
-        Admin
-      </a>
 
     </nav>
 

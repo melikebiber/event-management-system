@@ -7,6 +7,8 @@ import { EventDetail } from './pages/event-detail/event-detail';
 import { Admin } from './pages/admin/admin';
 import { MyEvents } from './pages/my-events/my-events';
 import { Profile } from './pages/profile/profile';
+import { adminGuard } from './guards/admin-guard';
+import { AdminEventForm} from './pages/admin-event-form/admin-event-form';
 
 export const routes: Routes = [
   {
@@ -30,9 +32,15 @@ export const routes: Routes = [
     component: EventDetail
   },
   {
-    path: 'admin',
-    component: Admin
-  },
+  path: 'admin',
+  component: Admin,
+  canActivate: [adminGuard]
+},
+{
+  path: 'admin/events/new',
+  component: AdminEventForm,
+  canActivate: [adminGuard]
+},
   {
   path: 'my-events',
   component: MyEvents

@@ -73,18 +73,19 @@ export class Events implements OnInit {
       }
     });
   }
- getEventImage(
+getEventImage(
   categoryName: string,
   eventTitle: string
 ): string {
   const category = categoryName
-    .trim()
-    .toLocaleLowerCase('tr-TR');
+    ?.trim()
+    .toLocaleLowerCase('tr-TR') ?? '';
 
   const title = eventTitle
-    .trim()
-    .toLocaleLowerCase('tr-TR');
+    ?.trim()
+    .toLocaleLowerCase('tr-TR') ?? '';
 
+  // Boncuk veya kolye etkinlikleri için özel görsel
   if (
     title.includes('boncuk') ||
     title.includes('kolye')
@@ -96,12 +97,23 @@ export class Events implements OnInit {
     return '/images/events/seminar.jpg';
   }
 
-  if (category.includes('workshop')) {
+  if (
+    category.includes('workshop') ||
+    category.includes('atölye')
+  ) {
     return '/images/events/workshop.jpg';
   }
 
   if (category.includes('konferans')) {
     return '/images/events/conference.jpg';
+  }
+
+  if (category.includes('konser')) {
+    return '/images/events/concert.jpg';
+  }
+
+  if (category.includes('sergi')) {
+    return '/images/events/exhibition.jpg';
   }
 
   if (
@@ -112,7 +124,8 @@ export class Events implements OnInit {
     return '/images/events/theatre.jpg';
   }
 
-  return '/images/events/concert.jpg';
+  // Kategori eşleşmezse varsayılan görsel
+  return '/images/events/conference.jpg';
 }
 
   createFilterOptions(): void {

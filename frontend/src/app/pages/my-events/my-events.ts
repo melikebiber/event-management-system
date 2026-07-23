@@ -98,7 +98,58 @@ export class MyEvents implements OnInit { //OnInit, Angular bileşeni açıldı�
         }
       });
   }
+getEventImage(
+  categoryName: string,
+  eventTitle: string
+): string {
+  const category = categoryName
+    ?.trim()
+    .toLocaleLowerCase('tr-TR') ?? '';
 
+  const title = eventTitle
+    ?.trim()
+    .toLocaleLowerCase('tr-TR') ?? '';
+
+  if (
+    title.includes('boncuk') ||
+    title.includes('kolye')
+  ) {
+    return '/images/events/bead.jpg';
+  }
+
+  if (category.includes('seminer')) {
+    return '/images/events/seminar.jpg';
+  }
+
+  if (
+    category.includes('workshop') ||
+    category.includes('atölye')
+  ) {
+    return '/images/events/workshop.jpg';
+  }
+
+  if (category.includes('konferans')) {
+    return '/images/events/conference.jpg';
+  }
+
+  if (category.includes('konser')) {
+    return '/images/events/concert.jpg';
+  }
+
+  if (category.includes('sergi')) {
+    return '/images/events/exhibition.jpg';
+  }
+
+  if (
+    category.includes('tiyatro') ||
+    category.includes('kültür') ||
+    category.includes('sanat')
+  ) {
+    return '/images/events/theatre.jpg';
+  }
+
+  return '/images/events/conference.jpg';
+}
   cancelRegistration(registration: Registration): void {
     const confirmation = window.confirm(
       'Bu etkinlik için katılım kaydını iptal etmek istediğine emin misin?'

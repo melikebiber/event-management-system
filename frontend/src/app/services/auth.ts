@@ -60,7 +60,26 @@ export class Auth {
   isLoggedIn(): boolean {
     return localStorage.getItem('token') !== null;
   }
+isAdmin(): boolean {
+  const currentUserText =
+    localStorage.getItem('currentUser');
 
+  if (!currentUserText) {
+    return false;
+  }
+
+  try {
+    const currentUser = JSON.parse(
+      currentUserText
+    ) as {
+      role?: string;
+    };
+
+    return currentUser.role === 'ADMIN';
+  } catch {
+    return false;
+  }
+}
   logout(): void {
   localStorage.removeItem('token');
   localStorage.removeItem('currentUser');

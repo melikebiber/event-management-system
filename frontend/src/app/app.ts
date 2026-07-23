@@ -23,6 +23,27 @@ export class App {
     private router: Router
   ) {}
 
+  isAdmin(): boolean {
+    const currentUserText =
+      localStorage.getItem('currentUser');
+
+    if (!currentUserText) {
+      return false;
+    }
+
+    try {
+      const currentUser = JSON.parse(
+        currentUserText
+      ) as {
+        role?: string;
+      };
+
+      return currentUser.role === 'ADMIN';
+    } catch {
+      return false;
+    }
+  }
+
   logout() {
     this.authService.logout();
     this.router.navigate(['/login']);

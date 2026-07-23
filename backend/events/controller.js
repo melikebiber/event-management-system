@@ -3,11 +3,15 @@ const defineEvent = require('../common/models/Event');
 const defineUser = require('../common/models/User');
 const defineCategory = require('../common/models/Category');
 const defineLocation = require('../common/models/Location');
+const defineTicket = require('../common/models/Ticket');
+const defineRegistration = require('../common/models/Registration');
 
 const Event = defineEvent(sequelize);
 const User = defineUser(sequelize);
 const Category = defineCategory(sequelize);
 const Location = defineLocation(sequelize);
+const Ticket = defineTicket(sequelize);
+const Registration = defineRegistration(sequelize);
 
 // İlişkiler
 Event.belongsTo(User, {
@@ -314,29 +318,60 @@ exports.updateEvent = async (req, res) => {
   }
 };
 
-// Etkinliği siler
+// Etkinliği ve bağlı kayıtları siler
 exports.deleteEvent = async (req, res) => {
+  const transaction = await sequelize.transaction();
+
   try {
     const { eventId } = req.params;
 
-    const event = await Event.findByPk(eventId);
+    const event = await Event.findByPk(eventId, {
+      transaction
+    });
 
     if (!event) {
+      await transaction.rollback();
+
       return res.status(404).json({
         success: false,
         message: 'Etkinlik bulunamadı.'
       });
     }
 
-    await event.destroy();
+    // Önce etkinliğe bağlı katılım kayıtlarını siler
+    await Registration.destroy({
+      where: {
+        event_id: eventId
+      },
+      transaction
+    });
+
+    // Sonra etkinliğe bağlı biletleri siler
+    await Ticket.destroy({
+      where: {
+        event_id: eventId
+      },
+      transaction
+    });
+
+    // En son etkinliği siler
+    await event.destroy({
+      transaction
+    });
+
+    await transaction.commit();
 
     return res.status(200).json({
       success: true,
-      message: 'Etkinlik başarıyla silindi.'
+      message:
+        'Etkinlik ve bağlı kayıtlar başarıyla silindi.'
     });
   } catch (error) {
+    await transaction.rollback();
+
     return res.status(500).json({
       success: false,
+      message: 'Etkinlik silinemedi.',
       error: error.message
     });
   }

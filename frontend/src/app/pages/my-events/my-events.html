@@ -81,16 +81,22 @@
         *ngFor="let registration of registrations"
         class="registration-card"
       >
-        <div class="card-image">
-          <span class="category-badge">
-            {{
-              registration.event?.category?.category_name
-                || 'Etkinlik'
-            }}
-          </span>
+       <div class="card-image">
+  <img
+    [src]="getEventImage(
+      registration.event?.category?.category_name || '',
+      registration.event?.title || ''
+    )"
+    [alt]="registration.event?.title || 'Etkinlik görseli'"
+  >
 
-          <div class="image-icon">🎫</div>
-        </div>
+  <span class="category-badge">
+    {{
+      registration.event?.category?.category_name
+        || 'Etkinlik'
+    }}
+  </span>
+</div>
 
         <div class="card-content">
           <div class="card-top-row">
