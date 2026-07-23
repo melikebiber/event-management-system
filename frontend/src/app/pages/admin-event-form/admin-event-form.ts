@@ -30,6 +30,7 @@ import {
 } from '../../services/location';
 
 import { EventService } from '../../services/event';
+import { TicketService } from '../../services/ticket';
 
 interface CurrentUser {
   id: number;
@@ -59,11 +60,11 @@ export class AdminEventForm implements OnInit {
   successMessage = '';
 
   showLocationForm = false;
-isCreatingLocation = false;
-locationErrorMessage = '';
+  isCreatingLocation = false;
+  locationErrorMessage = '';
 
-isEditMode = false;
-editingEventId: number | null = null;
+  isEditMode = false;
+  editingEventId: number | null = null;
 
   eventForm = new FormGroup({
     title: new FormControl('', {
@@ -138,128 +139,171 @@ editingEventId: number | null = null;
       }
     )
   });
+
+  // Yeni etkinlik oluşturulurken kullanılacak bilet formu
+  ticketForm = new FormGroup({
+    ticket_type: new FormControl('Standart', {
+      nonNullable: true,
+      validators: [
+        Validators.required
+      ]
+    }),
+
+    ticket_quantity: new FormControl<number | null>(
+      null,
+      {
+        validators: [
+          Validators.required,
+          Validators.min(1)
+        ]
+      }
+    )
+  });
+
+  // Form içinden yeni konum eklemek için kullanılır
   locationForm = new FormGroup({
-  location_name: new FormControl('', {
-    nonNullable: true,
-    validators: [
-      Validators.required,
-      Validators.minLength(3)
-    ]
-  }),
-
-  address: new FormControl('', {
-    nonNullable: true,
-    validators: [
-      Validators.required
-    ]
-  }),
-
-  city: new FormControl('', {
-    nonNullable: true,
-    validators: [
-      Validators.required
-    ]
-  }),
-
-  district: new FormControl('', {
-    nonNullable: true,
-    validators: [
-      Validators.required
-    ]
-  }),
-
-  capacity: new FormControl<number | null>(
-    null,
-    {
+    location_name: new FormControl('', {
+      nonNullable: true,
       validators: [
         Validators.required,
-        Validators.min(1)
+        Validators.minLength(3)
       ]
-    }
-  )
-});
+    }),
 
- constructor(
-  private categoryService: CategoryService,
-  private locationService: LocationService,
-  private eventService: EventService,
-  private router: Router,
-  private activatedRoute: ActivatedRoute,
-  private changeDetector: ChangeDetectorRef
-) {}
+    address: new FormControl('', {
+      nonNullable: true,
+      validators: [
+        Validators.required
+      ]
+    }),
+
+    city: new FormControl('', {
+      nonNullable: true,
+      validators: [
+        Validators.required
+      ]
+    }),
+
+    district: new FormControl('', {
+      nonNullable: true,
+      validators: [
+        Validators.required
+      ]
+    }),
+
+    capacity: new FormControl<number | null>(
+      null,
+      {
+        validators: [
+          Validators.required,
+          Validators.min(1)
+        ]
+      }
+    )
+  });
+
+  constructor(
+    private categoryService: CategoryService,
+    private locationService: LocationService,
+    private eventService: EventService,
+    private ticketService: TicketService,
+    private router: Router,
+    private activatedRoute: ActivatedRoute,
+    private changeDetector: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
-  const eventId =
-    this.activatedRoute.snapshot.paramMap.get('eventId');
+    const eventId =
+      this.activatedRoute.snapshot.paramMap.get(
+        'eventId'
+      );
 
-  if (eventId) {
-    this.isEditMode = true;
-    this.editingEventId = Number(eventId);
+    if (eventId) {
+      this.isEditMode = true;
+      this.editingEventId = Number(eventId);
+    }
+
+    this.loadFormOptions();
+
+    if (
+      this.isEditMode &&
+      this.editingEventId !== null
+    ) {
+      this.loadEventForEdit(
+        this.editingEventId
+      );
+    }
   }
 
-  this.loadFormOptions();
+  loadEventForEdit(eventId: number): void {
+    this.eventService
+      .getEventById(eventId)
+      .subscribe({
+        next: (response) => {
+          const event =
+            response.data ?? response;
 
-  if (
-    this.isEditMode &&
-    this.editingEventId !== null
-  ) {
-    this.loadEventForEdit(
-      this.editingEventId
-    );
+          this.eventForm.patchValue({
+            title: event.title,
+            description: event.description,
+            event_date: event.event_date,
+            start_time: event.start_time,
+            end_time: event.end_time,
+            capacity: event.capacity,
+            status: event.status,
+
+            category_id:
+              event.category?.category_id ??
+              event.category_id,
+
+            location_id:
+              event.location?.location_id ??
+              event.location_id
+          });
+
+          this.changeDetector.detectChanges();
+        },
+
+        error: (error) => {
+          console.error(
+            'Etkinlik bilgileri alınamadı:',
+            error
+          );
+
+          this.errorMessage =
+            'Düzenlenecek etkinlik bilgileri yüklenemedi.';
+
+          this.changeDetector.detectChanges();
+        }
+      });
   }
-}
-loadEventForEdit(eventId: number): void {
-  this.eventService
-    .getEventById(eventId)
-    .subscribe({
-      next: (response) => {
-        const event =
-          response.data ?? response;
-
-        this.eventForm.patchValue({
-          title: event.title,
-          description: event.description,
-          event_date: event.event_date,
-          start_time: event.start_time,
-          end_time: event.end_time,
-          capacity: event.capacity,
-          status: event.status,
-          category_id:
-            event.category?.category_id ??
-            event.category_id,
-          location_id:
-            event.location?.location_id ??
-            event.location_id
-        });
-
-        this.changeDetector.detectChanges();
-      },
-
-      error: (error) => {
-        console.error(
-          'Etkinlik bilgileri alınamadı:',
-          error
-        );
-
-        this.errorMessage =
-          'Düzenlenecek etkinlik bilgileri yüklenemedi.';
-
-        this.changeDetector.detectChanges();
-      }
-    });
-}
 
   loadFormOptions(): void {
     this.isLoadingOptions = true;
     this.errorMessage = '';
 
+    let categoriesLoaded = false;
+    let locationsLoaded = false;
+
+    const finishLoading = (): void => {
+      if (
+        categoriesLoaded &&
+        locationsLoaded
+      ) {
+        this.isLoadingOptions = false;
+        this.changeDetector.detectChanges();
+      }
+    };
+
     this.categoryService
       .getAllCategories()
       .subscribe({
         next: (response) => {
-          this.categories = response.data ?? [];
+          this.categories =
+            response.data ?? [];
 
-          this.finishOptionLoading();
+          categoriesLoaded = true;
+          finishLoading();
         },
 
         error: (error) => {
@@ -271,7 +315,8 @@ loadEventForEdit(eventId: number): void {
           this.errorMessage =
             'Kategoriler yüklenemedi.';
 
-          this.finishOptionLoading();
+          categoriesLoaded = true;
+          finishLoading();
         }
       });
 
@@ -279,9 +324,11 @@ loadEventForEdit(eventId: number): void {
       .getAllLocations()
       .subscribe({
         next: (response) => {
-          this.locations = response.data ?? [];
+          this.locations =
+            response.data ?? [];
 
-          this.finishOptionLoading();
+          locationsLoaded = true;
+          finishLoading();
         },
 
         error: (error) => {
@@ -291,26 +338,13 @@ loadEventForEdit(eventId: number): void {
           );
 
           this.errorMessage =
+            this.errorMessage ||
             'Konumlar yüklenemedi.';
 
-          this.finishOptionLoading();
+          locationsLoaded = true;
+          finishLoading();
         }
       });
-  }
-
-  finishOptionLoading(): void {
-    if (
-      this.categories.length > 0 &&
-      this.locations.length > 0
-    ) {
-      this.isLoadingOptions = false;
-    }
-
-    if (this.errorMessage) {
-      this.isLoadingOptions = false;
-    }
-
-    this.changeDetector.detectChanges();
   }
 
   onSubmit(): void {
@@ -321,7 +355,20 @@ loadEventForEdit(eventId: number): void {
       this.eventForm.markAllAsTouched();
 
       this.errorMessage =
-        'Lütfen zorunlu alanları doğru şekilde doldur.';
+        'Lütfen etkinlik alanlarını doğru şekilde doldur.';
+
+      return;
+    }
+
+    // Bilet bilgileri yalnızca yeni etkinlikte zorunludur
+    if (
+      !this.isEditMode &&
+      this.ticketForm.invalid
+    ) {
+      this.ticketForm.markAllAsTouched();
+
+      this.errorMessage =
+        'Lütfen bilet türünü ve bilet kontenjanını doğru şekilde doldur.';
 
       return;
     }
@@ -379,179 +426,347 @@ loadEventForEdit(eventId: number): void {
     }
 
     const eventData = {
-      title: formData.title.trim(),
+      title:
+        formData.title.trim(),
+
       description:
         formData.description.trim(),
-      event_date: formData.event_date,
-      start_time: formData.start_time,
-      end_time: formData.end_time,
-      capacity: formData.capacity,
-      status: formData.status,
-      organizer_id: currentUser.id,
-      category_id: formData.category_id,
-      location_id: formData.location_id
+
+      event_date:
+        formData.event_date,
+
+      start_time:
+        formData.start_time,
+
+      end_time:
+        formData.end_time,
+
+      capacity:
+        formData.capacity,
+
+      status:
+        formData.status,
+
+      organizer_id:
+        currentUser.id,
+
+      category_id:
+        formData.category_id,
+
+      location_id:
+        formData.location_id
     };
 
-   this.isSubmitting = true;
+    this.isSubmitting = true;
 
-const request =
-  this.isEditMode &&
-  this.editingEventId !== null
-    ? this.eventService.updateEvent(
+    // Etkinlik düzenleme işlemi
+    if (
+      this.isEditMode &&
+      this.editingEventId !== null
+    ) {
+      this.updateExistingEvent(
         this.editingEventId,
         eventData
-      )
-    : this.eventService.createEvent(
-        eventData
       );
 
-request.subscribe({
-  next: (response) => {
-    this.isSubmitting = false;
+      return;
+    }
 
-    this.successMessage =
-      response.message ??
-      (
-        this.isEditMode
-          ? 'Etkinlik başarıyla güncellendi.'
-          : 'Etkinlik başarıyla oluşturuldu.'
-      );
-
-    this.changeDetector.detectChanges();
-
-    setTimeout(() => {
-      this.router.navigate(['/admin']);
-    }, 1000);
-  },
-
-  error: (error) => {
-    console.error(
-      this.isEditMode
-        ? 'Etkinlik güncellenemedi:'
-        : 'Etkinlik oluşturulamadı:',
-      error
+    // Yeni etkinlik ve bilet oluşturma işlemi
+    this.createEventWithTicket(
+      eventData
     );
-
-    this.isSubmitting = false;
-
-    this.errorMessage =
-      error.error?.message ??
-      error.error?.error ??
-      (
-        this.isEditMode
-          ? 'Etkinlik güncellenirken bir hata oluştu.'
-          : 'Etkinlik oluşturulurken bir hata oluştu.'
-      );
-
-    this.changeDetector.detectChanges();
   }
-});
-  }
-toggleLocationForm(): void {
-  this.showLocationForm =
-    !this.showLocationForm;
 
-  this.locationErrorMessage = '';
+  private updateExistingEvent(
+    eventId: number,
+    eventData: {
+      title: string;
+      description: string;
+      event_date: string;
+      start_time: string;
+      end_time: string;
+      capacity: number;
+      status: string;
+      organizer_id: number;
+      category_id: number;
+      location_id: number;
+    }
+  ): void {
+    this.eventService
+      .updateEvent(
+        eventId,
+        eventData
+      )
+      .subscribe({
+        next: (response) => {
+          this.isSubmitting = false;
 
-  if (!this.showLocationForm) {
-    this.locationForm.reset();
+          this.successMessage =
+            response.message ??
+            'Etkinlik başarıyla güncellendi.';
+
+          this.changeDetector.detectChanges();
+
+          setTimeout(() => {
+            this.router.navigate(['/admin']);
+          }, 1000);
+        },
+
+        error: (error) => {
+          console.error(
+            'Etkinlik güncellenemedi:',
+            error
+          );
+
+          this.isSubmitting = false;
+
+          this.errorMessage =
+            error.error?.message ??
+            error.error?.error ??
+            'Etkinlik güncellenirken bir hata oluştu.';
+
+          this.changeDetector.detectChanges();
+        }
+      });
   }
+
+  private createEventWithTicket(
+    eventData: {
+      title: string;
+      description: string;
+      event_date: string;
+      start_time: string;
+      end_time: string;
+      capacity: number;
+      status: string;
+      organizer_id: number;
+      category_id: number;
+      location_id: number;
+    }
+  ): void {
+   const ticketData =
+  this.ticketForm.getRawValue();
+
+const ticketQuantity =
+  ticketData.ticket_quantity;
+
+if (ticketQuantity === null) {
+  this.isSubmitting = false;
+
+  this.errorMessage =
+    'Bilet kontenjanı zorunludur.';
+
+  return;
 }
 
-createLocation(): void {
-  this.locationErrorMessage = '';
+    this.eventService
+      .createEvent(eventData)
+      .subscribe({
+        next: (eventResponse) => {
+          const createdEvent =
+            eventResponse.data ??
+            eventResponse.event ??
+            eventResponse;
 
-  if (this.locationForm.invalid) {
-    this.locationForm.markAllAsTouched();
+          const createdEventId =
+            createdEvent.event_id;
 
-    this.locationErrorMessage =
-      'Lütfen konum bilgilerini eksiksiz doldur.';
+          if (!createdEventId) {
+            this.isSubmitting = false;
 
-    return;
-  }
+            this.errorMessage =
+              'Etkinlik oluşturuldu ancak etkinlik numarası alınamadı.';
 
-  const formData =
-    this.locationForm.getRawValue();
+            this.changeDetector.detectChanges();
+            return;
+          }
 
-  if (formData.capacity === null) {
-    this.locationErrorMessage =
-      'Konum kapasitesi zorunludur.';
+      const newTicketData = {
+  event_id: createdEventId,
 
-    return;
-  }
+  ticket_type:
+    ticketData.ticket_type.trim(),
 
-  const locationData = {
-    location_name:
-      formData.location_name.trim(),
+  total_quantity:
+    ticketQuantity,
 
-    address:
-      formData.address.trim(),
+  available_quantity:
+    ticketQuantity
+};
 
-    city:
-      formData.city.trim(),
-
-    district:
-      formData.district.trim(),
-
-    capacity:
-      formData.capacity
-  };
-
-  this.isCreatingLocation = true;
-
-  this.locationService
-    .createLocation(locationData)
-    .subscribe({
-      next: (response) => {
-        this.isCreatingLocation = false;
-
-        const newLocation =
-          response.data ?? response.location;
-
-        if (newLocation) {
-          this.locations = [
-            ...this.locations,
-            newLocation
-          ];
-
-          this.eventForm.controls.location_id
-            .setValue(
-              newLocation.location_id
-            );
-        } else {
-          this.locationService
-            .getAllLocations()
+          this.ticketService
+            .createTicket(newTicketData)
             .subscribe({
-              next: (locationResponse) => {
-                this.locations =
-                  locationResponse.data ?? [];
+              next: () => {
+                this.isSubmitting = false;
+
+                this.successMessage =
+                  'Etkinlik ve bilet başarıyla oluşturuldu.';
+
+                this.changeDetector.detectChanges();
+
+                setTimeout(() => {
+                  this.router.navigate(['/admin']);
+                }, 1000);
+              },
+
+              error: (ticketError) => {
+                console.error(
+                  'Bilet oluşturulamadı:',
+                  ticketError
+                );
+
+                this.isSubmitting = false;
+
+                this.errorMessage =
+                  ticketError.error?.message ??
+                  ticketError.error?.error ??
+                  'Etkinlik oluşturuldu ancak bilet oluşturulamadı.';
+
+                this.changeDetector.detectChanges();
               }
             });
+        },
+
+        error: (eventError) => {
+          console.error(
+            'Etkinlik oluşturulamadı:',
+            eventError
+          );
+
+          this.isSubmitting = false;
+
+          this.errorMessage =
+            eventError.error?.message ??
+            eventError.error?.error ??
+            'Etkinlik oluşturulurken bir hata oluştu.';
+
+          this.changeDetector.detectChanges();
         }
+      });
+  }
 
-        this.locationForm.reset();
-        this.showLocationForm = false;
+  toggleLocationForm(): void {
+    this.showLocationForm =
+      !this.showLocationForm;
 
-        this.changeDetector.detectChanges();
-      },
+    this.locationErrorMessage = '';
 
-      error: (error) => {
-        console.error(
-          'Konum oluşturulamadı:',
-          error
-        );
+    if (!this.showLocationForm) {
+      this.locationForm.reset();
+    }
+  }
 
-        this.isCreatingLocation = false;
+  createLocation(): void {
+    this.locationErrorMessage = '';
 
-        this.locationErrorMessage =
-          error.error?.message ??
-          error.error?.error ??
-          'Konum oluşturulurken hata oluştu.';
+    if (this.locationForm.invalid) {
+      this.locationForm.markAllAsTouched();
 
-        this.changeDetector.detectChanges();
-      }
-    });
-}
+      this.locationErrorMessage =
+        'Lütfen konum bilgilerini eksiksiz doldur.';
+
+      return;
+    }
+
+    const formData =
+      this.locationForm.getRawValue();
+
+    if (formData.capacity === null) {
+      this.locationErrorMessage =
+        'Konum kapasitesi zorunludur.';
+
+      return;
+    }
+
+    const locationData = {
+      location_name:
+        formData.location_name.trim(),
+
+      address:
+        formData.address.trim(),
+
+      city:
+        formData.city.trim(),
+
+      district:
+        formData.district.trim(),
+
+      capacity:
+        formData.capacity
+    };
+
+    this.isCreatingLocation = true;
+
+    this.locationService
+      .createLocation(locationData)
+      .subscribe({
+        next: (response) => {
+          this.isCreatingLocation = false;
+
+          const newLocation =
+            response.data ??
+            response.location;
+
+          if (newLocation) {
+            this.locations = [
+              ...this.locations,
+              newLocation
+            ];
+
+            this.eventForm.controls.location_id
+              .setValue(
+                newLocation.location_id
+              );
+          } else {
+            this.reloadLocations();
+          }
+
+          this.locationForm.reset();
+          this.showLocationForm = false;
+
+          this.changeDetector.detectChanges();
+        },
+
+        error: (error) => {
+          console.error(
+            'Konum oluşturulamadı:',
+            error
+          );
+
+          this.isCreatingLocation = false;
+
+          this.locationErrorMessage =
+            error.error?.message ??
+            error.error?.error ??
+            'Konum oluşturulurken hata oluştu.';
+
+          this.changeDetector.detectChanges();
+        }
+      });
+  }
+
+  private reloadLocations(): void {
+    this.locationService
+      .getAllLocations()
+      .subscribe({
+        next: (response) => {
+          this.locations =
+            response.data ?? [];
+
+          this.changeDetector.detectChanges();
+        },
+
+        error: (error) => {
+          console.error(
+            'Konum listesi yenilenemedi:',
+            error
+          );
+        }
+      });
+  }
+
   cancel(): void {
     this.router.navigate(['/admin']);
   }

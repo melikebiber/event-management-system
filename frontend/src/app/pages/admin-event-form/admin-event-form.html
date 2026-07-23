@@ -8,20 +8,20 @@
         </span>
 
         <h1>
-  {{
-    isEditMode
-      ? 'Etkinliği Düzenle'
-      : 'Yeni Etkinlik Oluştur'
-  }}
-</h1>
+          {{
+            isEditMode
+              ? 'Etkinliği Düzenle'
+              : 'Yeni Etkinlik Oluştur'
+          }}
+        </h1>
 
         <p>
-  {{
-    isEditMode
-      ? 'Etkinlik bilgilerini güncelleyebilirsin.'
-      : 'Etkinlik bilgilerini doldurarak sisteme yeni bir etkinlik ekleyebilirsin.'
-  }}
-</p>
+          {{
+            isEditMode
+              ? 'Etkinlik bilgilerini güncelleyebilirsin.'
+              : 'Etkinlik bilgilerini doldurarak sisteme yeni bir etkinlik ekleyebilirsin.'
+          }}
+        </p>
       </div>
 
       <a
@@ -199,7 +199,6 @@
 
         <div class="form-grid">
 
-          <!-- Kategori -->
           <div class="form-group">
             <label for="category">
               Kategori
@@ -222,7 +221,6 @@
             </select>
           </div>
 
-          <!-- Konum seçimi -->
           <div class="form-group">
 
             <div class="field-heading">
@@ -261,7 +259,7 @@
             </select>
           </div>
 
-          <!-- Yeni konum formu -->
+          <!-- YENİ KONUM FORMU -->
           <div
             class="new-location-panel full-width"
             *ngIf="showLocationForm"
@@ -405,7 +403,7 @@
 
           <div class="form-group">
             <label for="capacity">
-              Kapasite
+              Etkinlik kapasitesi
             </label>
 
             <input
@@ -415,6 +413,16 @@
               formControlName="capacity"
               placeholder="Örnek: 300"
             >
+
+            <small
+              class="field-error"
+              *ngIf="
+                eventForm.controls.capacity.touched &&
+                eventForm.controls.capacity.invalid
+              "
+            >
+              Etkinlik kapasitesi en az 1 olmalıdır.
+            </small>
           </div>
 
           <div class="form-group">
@@ -439,6 +447,78 @@
         </div>
       </section>
 
+      <!-- 05 BİLET BİLGİLERİ -->
+      <section
+        class="form-section"
+        *ngIf="!isEditMode"
+        [formGroup]="ticketForm"
+      >
+
+        <div class="section-heading">
+          <span class="section-number">05</span>
+
+          <div>
+            <h2>Bilet bilgileri</h2>
+
+            <p>
+              Etkinliğin başlangıç bilet türünü ve
+              bilet kontenjanını belirle.
+            </p>
+          </div>
+        </div>
+
+        <div class="form-grid">
+
+          <div class="form-group">
+            <label for="ticket-type">
+              Bilet türü
+            </label>
+
+            <input
+              id="ticket-type"
+              type="text"
+              formControlName="ticket_type"
+              placeholder="Örnek: Standart"
+            >
+
+            <small
+              class="field-error"
+              *ngIf="
+                ticketForm.controls.ticket_type.touched &&
+                ticketForm.controls.ticket_type.invalid
+              "
+            >
+              Bilet türü zorunludur.
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label for="ticket-quantity">
+              Bilet kontenjanı
+            </label>
+
+            <input
+              id="ticket-quantity"
+              type="number"
+              min="1"
+              formControlName="ticket_quantity"
+              placeholder="Örnek: 100"
+            >
+
+            <small
+              class="field-error"
+              *ngIf="
+                ticketForm.controls.ticket_quantity.touched &&
+                ticketForm.controls.ticket_quantity.invalid
+              "
+            >
+              Bilet kontenjanı en az 1 olmalıdır.
+            </small>
+          </div>
+
+        </div>
+      </section>
+
       <!-- BUTONLAR -->
       <footer class="form-actions">
 
@@ -457,18 +537,18 @@
           [disabled]="isSubmitting"
         >
           {{
-  isSubmitting
-    ? (
-        isEditMode
-          ? 'Etkinlik güncelleniyor...'
-          : 'Etkinlik oluşturuluyor...'
-      )
-    : (
-        isEditMode
-          ? 'Değişiklikleri Kaydet'
-          : 'Etkinliği Oluştur'
-      )
-}}
+            isSubmitting
+              ? (
+                  isEditMode
+                    ? 'Etkinlik güncelleniyor...'
+                    : 'Etkinlik oluşturuluyor...'
+                )
+              : (
+                  isEditMode
+                    ? 'Değişiklikleri Kaydet'
+                    : 'Etkinliği Oluştur'
+                )
+          }}
         </button>
 
       </footer>

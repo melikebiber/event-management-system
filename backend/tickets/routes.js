@@ -1,6 +1,12 @@
 const router = require('express').Router();
 const TicketController = require('./controller');
+const {
+  check
+} = require('../common/middlewares/IsAuthenticated');
 
+const {
+  has
+} = require('../common/middlewares/CheckPermission');
 /**
  * @swagger
  * /tickets:
@@ -60,6 +66,8 @@ router.get(
  */
 router.post(
   '/',
+  check,
+  has('ADMIN'),
   TicketController.createTicket
 );
 
@@ -159,6 +167,8 @@ router.get(
  */
 router.put(
   '/:ticketId',
+  check,
+  has('ADMIN'),
   TicketController.updateTicket
 );
 
@@ -187,7 +197,8 @@ router.put(
  */
 router.delete(
   '/:ticketId',
+  check,
+  has('ADMIN'),
   TicketController.deleteTicket
 );
-
 module.exports = router;

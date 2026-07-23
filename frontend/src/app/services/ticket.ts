@@ -32,4 +32,17 @@ export class TicketService {
       `${this.apiUrl}/event/${eventId}`
     );
   }
+  createTicket(
+  ticketData: {
+    event_id: number;
+    ticket_type: string;
+    total_quantity: number;
+    available_quantity: number;
+  }
+): Observable<any> {
+  return this.http.post<any>(
+    this.apiUrl,
+    ticketData
+  );
+}
 }
