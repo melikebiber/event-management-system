@@ -518,7 +518,261 @@
 
         </div>
       </section>
+<!-- 06 MEVCUT BİLETLERİ YÖNET -->
+<section
+  class="form-section"
+  *ngIf="isEditMode"
+>
+  <div class="section-heading">
+    <span class="section-number">05</span>
 
+    <div>
+      <h2>Bilet yönetimi</h2>
+
+      <p>
+        Etkinliğin mevcut biletlerini düzenle
+        veya yeni bir bilet türü ekle.
+      </p>
+    </div>
+  </div>
+
+  <div class="ticket-management-area">
+
+    <div
+      class="message-box error-message"
+      *ngIf="ticketErrorMessage"
+    >
+      {{ ticketErrorMessage }}
+    </div>
+
+    <div
+      class="message-box success-message"
+      *ngIf="ticketSuccessMessage"
+    >
+      {{ ticketSuccessMessage }}
+    </div>
+
+    <div
+      class="state-message"
+      *ngIf="isLoadingTickets"
+    >
+      Bilet bilgileri yükleniyor...
+    </div>
+
+    <div
+      class="ticket-management-header"
+      *ngIf="!isLoadingTickets"
+    >
+      <div>
+        <h3>Mevcut biletler</h3>
+
+        <p>
+          Toplam ve kalan bilet sayılarını görüntüleyebilirsin.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="add-ticket-button"
+        (click)="openNewTicketForm()"
+        *ngIf="!showTicketManagementForm"
+      >
+        + Yeni Bilet Türü Ekle
+      </button>
+    </div>
+
+    <div
+      class="ticket-empty-state"
+      *ngIf="
+        !isLoadingTickets &&
+        tickets.length === 0
+      "
+    >
+      Bu etkinliğe ait bilet bulunmuyor.
+    </div>
+
+    <div
+      class="ticket-list"
+      *ngIf="
+        !isLoadingTickets &&
+        tickets.length > 0
+      "
+    >
+      <article
+        class="ticket-item"
+        *ngFor="let ticket of tickets"
+      >
+        <div class="ticket-main-info">
+          <strong>
+            {{ ticket.ticket_type }}
+          </strong>
+
+          <span>
+            Bilet #{{ ticket.ticket_id }}
+          </span>
+        </div>
+
+        <div class="ticket-quantity-info">
+          <div>
+            <small>Toplam</small>
+
+            <strong>
+              {{ ticket.total_quantity }}
+            </strong>
+          </div>
+
+          <div>
+            <small>Kalan</small>
+
+            <strong>
+              {{ ticket.available_quantity }}
+            </strong>
+          </div>
+
+          <div>
+            <small>Kullanılan</small>
+
+            <strong>
+              {{
+                ticket.total_quantity -
+                ticket.available_quantity
+              }}
+            </strong>
+          </div>
+        </div>
+
+        <div class="ticket-actions">
+          <button
+            type="button"
+            class="edit-ticket-button"
+            (click)="editTicket(ticket)"
+            [disabled]="isSavingTicket"
+          >
+            Düzenle
+          </button>
+
+          <button
+            type="button"
+            class="delete-ticket-button"
+            (click)="deleteTicket(ticket)"
+            [disabled]="isSavingTicket"
+          >
+            Sil
+          </button>
+        </div>
+      </article>
+    </div>
+
+    <!-- Bilet ekleme / düzenleme formu -->
+    <div
+      class="ticket-management-form"
+      *ngIf="showTicketManagementForm"
+      [formGroup]="ticketManagementForm"
+    >
+      <div class="ticket-form-header">
+        <div>
+          <h3>
+            {{
+              editingTicketId !== null
+                ? 'Bileti Düzenle'
+                : 'Yeni Bilet Türü Ekle'
+            }}
+          </h3>
+
+          <p>
+            {{
+              editingTicketId !== null
+                ? 'Bilet türünü ve toplam kontenjanını güncelle.'
+                : 'Etkinlik için yeni bir bilet türü oluştur.'
+            }}
+          </p>
+        </div>
+      </div>
+
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label for="management-ticket-type">
+            Bilet türü
+          </label>
+
+          <input
+            id="management-ticket-type"
+            type="text"
+            formControlName="ticket_type"
+            placeholder="Örnek: VIP"
+          >
+
+          <small
+            class="field-error"
+            *ngIf="
+              ticketManagementForm.controls.ticket_type.touched &&
+              ticketManagementForm.controls.ticket_type.invalid
+            "
+          >
+            Bilet türü zorunludur.
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label for="management-ticket-quantity">
+            Toplam kontenjan
+          </label>
+
+          <input
+            id="management-ticket-quantity"
+            type="number"
+            min="1"
+            formControlName="total_quantity"
+            placeholder="Örnek: 30"
+          >
+
+          <small
+            class="field-error"
+            *ngIf="
+              ticketManagementForm.controls.total_quantity.touched &&
+              ticketManagementForm.controls.total_quantity.invalid
+            "
+          >
+            Kontenjan en az 1 olmalıdır.
+          </small>
+        </div>
+
+      </div>
+
+      <div class="ticket-form-actions">
+
+        <button
+          type="button"
+          class="cancel-ticket-button"
+          (click)="cancelTicketForm()"
+          [disabled]="isSavingTicket"
+        >
+          Vazgeç
+        </button>
+
+        <button
+          type="button"
+          class="save-ticket-button"
+          (click)="saveTicket()"
+          [disabled]="isSavingTicket"
+        >
+          {{
+            isSavingTicket
+              ? 'Kaydediliyor...'
+              : (
+                  editingTicketId !== null
+                    ? 'Bileti Güncelle'
+                    : 'Bileti Ekle'
+                )
+          }}
+        </button>
+
+      </div>
+    </div>
+
+  </div>
+</section>
       <!-- BUTONLAR -->
       <footer class="form-actions">
 

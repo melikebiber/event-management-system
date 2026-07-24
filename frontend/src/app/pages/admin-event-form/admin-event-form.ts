@@ -30,11 +30,28 @@ import {
 } from '../../services/location';
 
 import { EventService } from '../../services/event';
-import { TicketService } from '../../services/ticket';
+
+import {
+  Ticket,
+  TicketService
+} from '../../services/ticket';
 
 interface CurrentUser {
   id: number;
   role?: string;
+}
+
+interface EventData {
+  title: string;
+  description: string;
+  event_date: string;
+  start_time: string;
+  end_time: string;
+  capacity: number;
+  status: string;
+  organizer_id: number;
+  category_id: number;
+  location_id: number;
 }
 
 @Component({
@@ -52,20 +69,34 @@ export class AdminEventForm implements OnInit {
 
   categories: Category[] = [];
   locations: Location[] = [];
+  tickets: Ticket[] = [];
 
   isLoadingOptions = true;
+  isLoadingTickets = false;
+
   isSubmitting = false;
+  isCreatingLocation = false;
+  isSavingTicket = false;
 
   errorMessage = '';
   successMessage = '';
 
-  showLocationForm = false;
-  isCreatingLocation = false;
   locationErrorMessage = '';
+
+  ticketErrorMessage = '';
+  ticketSuccessMessage = '';
+
+  showLocationForm = false;
 
   isEditMode = false;
   editingEventId: number | null = null;
+  editingTicketId: number | null = null;
 
+  showTicketManagementForm = false;
+
+  /*
+   * Etkinlik oluşturma ve düzenleme formu
+   */
   eventForm = new FormGroup({
     title: new FormControl('', {
       nonNullable: true,
@@ -140,7 +171,10 @@ export class AdminEventForm implements OnInit {
     )
   });
 
-  // Yeni etkinlik oluşturulurken kullanılacak bilet formu
+  /*
+   * Yeni etkinlik oluşturulurken
+   * ilk bilet kaydını oluşturmak için kullanılır.
+   */
   ticketForm = new FormGroup({
     ticket_type: new FormControl('Standart', {
       nonNullable: true,
@@ -160,7 +194,33 @@ export class AdminEventForm implements OnInit {
     )
   });
 
-  // Form içinden yeni konum eklemek için kullanılır
+  /*
+   * Düzenleme sayfasında yeni bilet eklemek
+   * veya mevcut bileti düzenlemek için kullanılır.
+   */
+  ticketManagementForm = new FormGroup({
+    ticket_type: new FormControl('', {
+      nonNullable: true,
+      validators: [
+        Validators.required
+      ]
+    }),
+
+    total_quantity: new FormControl<number | null>(
+      null,
+      {
+        validators: [
+          Validators.required,
+          Validators.min(1)
+        ]
+      }
+    )
+  });
+
+  /*
+   * Etkinlik formunun içinden
+   * yeni konum oluşturmak için kullanılır.
+   */
   locationForm = new FormGroup({
     location_name: new FormControl('', {
       nonNullable: true,
@@ -232,9 +292,17 @@ export class AdminEventForm implements OnInit {
       this.loadEventForEdit(
         this.editingEventId
       );
+
+      this.loadTickets(
+        this.editingEventId
+      );
     }
   }
 
+  /*
+   * Düzenlenecek etkinliğin bilgilerini getirir
+   * ve form alanlarını doldurur.
+   */
   loadEventForEdit(eventId: number): void {
     this.eventService
       .getEventById(eventId)
@@ -244,13 +312,26 @@ export class AdminEventForm implements OnInit {
             response.data ?? response;
 
           this.eventForm.patchValue({
-            title: event.title,
-            description: event.description,
-            event_date: event.event_date,
-            start_time: event.start_time,
-            end_time: event.end_time,
-            capacity: event.capacity,
-            status: event.status,
+            title:
+              event.title,
+
+            description:
+              event.description,
+
+            event_date:
+              event.event_date,
+
+            start_time:
+              event.start_time,
+
+            end_time:
+              event.end_time,
+
+            capacity:
+              event.capacity,
+
+            status:
+              event.status,
 
             category_id:
               event.category?.category_id ??
@@ -271,6 +352,7 @@ export class AdminEventForm implements OnInit {
           );
 
           this.errorMessage =
+            error.error?.message ??
             'Düzenlenecek etkinlik bilgileri yüklenemedi.';
 
           this.changeDetector.detectChanges();
@@ -278,6 +360,50 @@ export class AdminEventForm implements OnInit {
       });
   }
 
+  /*
+   * Düzenlenen etkinliğe ait biletleri getirir.
+   */
+  loadTickets(eventId: number): void {
+  this.isLoadingTickets = true;
+  this.ticketErrorMessage = '';
+
+  this.ticketService
+    .getTicketsByEventId(eventId)
+    .subscribe({
+      next: (response) => {
+        this.tickets = response.data ?? [];
+        this.isLoadingTickets = false;
+
+        this.changeDetector.detectChanges();
+      },
+
+      error: (error) => {
+        console.error(
+          'Biletler alınamadı:',
+          error
+        );
+
+        this.tickets = [];
+        this.isLoadingTickets = false;
+
+        this.ticketErrorMessage =
+          error.error?.message ??
+          error.error?.error ??
+          'Bilet bilgileri yüklenemedi.';
+
+        this.changeDetector.detectChanges();
+      },
+
+      complete: () => {
+        this.isLoadingTickets = false;
+        this.changeDetector.detectChanges();
+      }
+    });
+}
+
+  /*
+   * Kategorileri ve konumları backend'den getirir.
+   */
   loadFormOptions(): void {
     this.isLoadingOptions = true;
     this.errorMessage = '';
@@ -347,6 +473,9 @@ export class AdminEventForm implements OnInit {
       });
   }
 
+  /*
+   * Etkinlik formu gönderildiğinde çalışır.
+   */
   onSubmit(): void {
     this.errorMessage = '';
     this.successMessage = '';
@@ -360,7 +489,10 @@ export class AdminEventForm implements OnInit {
       return;
     }
 
-    // Bilet bilgileri yalnızca yeni etkinlikte zorunludur
+    /*
+     * İlk bilet bilgisi sadece
+     * yeni etkinlik oluşturulurken zorunludur.
+     */
     if (
       !this.isEditMode &&
       this.ticketForm.invalid
@@ -425,7 +557,7 @@ export class AdminEventForm implements OnInit {
       return;
     }
 
-    const eventData = {
+    const eventData: EventData = {
       title:
         formData.title.trim(),
 
@@ -459,7 +591,9 @@ export class AdminEventForm implements OnInit {
 
     this.isSubmitting = true;
 
-    // Etkinlik düzenleme işlemi
+    /*
+     * URL'de eventId varsa güncelleme işlemi yapılır.
+     */
     if (
       this.isEditMode &&
       this.editingEventId !== null
@@ -472,26 +606,21 @@ export class AdminEventForm implements OnInit {
       return;
     }
 
-    // Yeni etkinlik ve bilet oluşturma işlemi
+    /*
+     * URL'de eventId yoksa
+     * yeni etkinlik ve ilk bilet oluşturulur.
+     */
     this.createEventWithTicket(
       eventData
     );
   }
 
+  /*
+   * Var olan etkinliği günceller.
+   */
   private updateExistingEvent(
     eventId: number,
-    eventData: {
-      title: string;
-      description: string;
-      event_date: string;
-      start_time: string;
-      end_time: string;
-      capacity: number;
-      status: string;
-      organizer_id: number;
-      category_id: number;
-      location_id: number;
-    }
+    eventData: EventData
   ): void {
     this.eventService
       .updateEvent(
@@ -531,34 +660,27 @@ export class AdminEventForm implements OnInit {
       });
   }
 
+  /*
+   * Önce etkinliği oluşturur.
+   * Ardından oluşturulan event_id ile ilk bileti oluşturur.
+   */
   private createEventWithTicket(
-    eventData: {
-      title: string;
-      description: string;
-      event_date: string;
-      start_time: string;
-      end_time: string;
-      capacity: number;
-      status: string;
-      organizer_id: number;
-      category_id: number;
-      location_id: number;
-    }
+    eventData: EventData
   ): void {
-   const ticketData =
-  this.ticketForm.getRawValue();
+    const ticketData =
+      this.ticketForm.getRawValue();
 
-const ticketQuantity =
-  ticketData.ticket_quantity;
+    const ticketQuantity =
+      ticketData.ticket_quantity;
 
-if (ticketQuantity === null) {
-  this.isSubmitting = false;
+    if (ticketQuantity === null) {
+      this.isSubmitting = false;
 
-  this.errorMessage =
-    'Bilet kontenjanı zorunludur.';
+      this.errorMessage =
+        'Bilet kontenjanı zorunludur.';
 
-  return;
-}
+      return;
+    }
 
     this.eventService
       .createEvent(eventData)
@@ -582,18 +704,19 @@ if (ticketQuantity === null) {
             return;
           }
 
-      const newTicketData = {
-  event_id: createdEventId,
+          const newTicketData = {
+            event_id:
+              createdEventId,
 
-  ticket_type:
-    ticketData.ticket_type.trim(),
+            ticket_type:
+              ticketData.ticket_type.trim(),
 
-  total_quantity:
-    ticketQuantity,
+            total_quantity:
+              ticketQuantity,
 
-  available_quantity:
-    ticketQuantity
-};
+            available_quantity:
+              ticketQuantity
+          };
 
           this.ticketService
             .createTicket(newTicketData)
@@ -647,6 +770,9 @@ if (ticketQuantity === null) {
       });
   }
 
+  /*
+   * Yeni konum ekleme panelini açar veya kapatır.
+   */
   toggleLocationForm(): void {
     this.showLocationForm =
       !this.showLocationForm;
@@ -658,6 +784,9 @@ if (ticketQuantity === null) {
     }
   }
 
+  /*
+   * Yeni konumu backend'e gönderir.
+   */
   createLocation(): void {
     this.locationErrorMessage = '';
 
@@ -747,6 +876,10 @@ if (ticketQuantity === null) {
       });
   }
 
+  /*
+   * Konum oluşturulduktan sonra
+   * konum listesini yeniden getirir.
+   */
   private reloadLocations(): void {
     this.locationService
       .getAllLocations()
@@ -766,7 +899,256 @@ if (ticketQuantity === null) {
         }
       });
   }
+openNewTicketForm(): void {
+  this.editingTicketId = null;
+  this.ticketErrorMessage = '';
+  this.ticketSuccessMessage = '';
 
+  this.ticketManagementForm.reset({
+    ticket_type: '',
+    total_quantity: null
+  });
+
+  this.showTicketManagementForm = true;
+}
+
+editTicket(ticket: Ticket): void {
+  this.editingTicketId = ticket.ticket_id;
+  this.ticketErrorMessage = '';
+  this.ticketSuccessMessage = '';
+
+  this.ticketManagementForm.patchValue({
+    ticket_type: ticket.ticket_type,
+    total_quantity: ticket.total_quantity
+  });
+
+  this.showTicketManagementForm = true;
+}
+
+cancelTicketForm(): void {
+  this.editingTicketId = null;
+  this.showTicketManagementForm = false;
+
+  this.ticketErrorMessage = '';
+
+  this.ticketManagementForm.reset({
+    ticket_type: '',
+    total_quantity: null
+  });
+}
+
+saveTicket(): void {
+  this.ticketErrorMessage = '';
+  this.ticketSuccessMessage = '';
+
+  if (this.ticketManagementForm.invalid) {
+    this.ticketManagementForm.markAllAsTouched();
+
+    this.ticketErrorMessage =
+      'Lütfen bilet türünü ve kontenjanını doğru şekilde doldur.';
+
+    return;
+  }
+
+  if (this.editingEventId === null) {
+    this.ticketErrorMessage =
+      'Etkinlik bilgisi bulunamadı.';
+
+    return;
+  }
+
+  const formData =
+    this.ticketManagementForm.getRawValue();
+
+  if (formData.total_quantity === null) {
+    this.ticketErrorMessage =
+      'Bilet kontenjanı zorunludur.';
+
+    return;
+  }
+
+  const ticketType =
+    formData.ticket_type.trim();
+
+  const totalQuantity =
+    formData.total_quantity;
+
+  this.isSavingTicket = true;
+
+  // Mevcut bilet güncelleniyor
+  if (this.editingTicketId !== null) {
+    const currentTicket =
+      this.tickets.find(
+        ticket =>
+          ticket.ticket_id ===
+          this.editingTicketId
+      );
+
+    if (!currentTicket) {
+      this.isSavingTicket = false;
+
+      this.ticketErrorMessage =
+        'Güncellenecek bilet bulunamadı.';
+
+      return;
+    }
+
+    const soldQuantity =
+      currentTicket.total_quantity -
+      currentTicket.available_quantity;
+
+    if (totalQuantity < soldQuantity) {
+      this.isSavingTicket = false;
+
+      this.ticketErrorMessage =
+        `Toplam kontenjan, satılmış/kullanılmış ${soldQuantity} biletin altında olamaz.`;
+
+      return;
+    }
+
+    const availableQuantity =
+      totalQuantity - soldQuantity;
+
+    this.ticketService
+      .updateTicket(
+        this.editingTicketId,
+        {
+          ticket_type: ticketType,
+          total_quantity: totalQuantity,
+          available_quantity:
+            availableQuantity
+        }
+      )
+      .subscribe({
+        next: (response) => {
+          this.isSavingTicket = false;
+
+          this.ticketSuccessMessage =
+            response.message ??
+            'Bilet başarıyla güncellendi.';
+
+          this.cancelTicketForm();
+          this.ticketSuccessMessage =
+            'Bilet başarıyla güncellendi.';
+
+          this.loadTickets(
+            this.editingEventId!
+          );
+        },
+
+        error: (error) => {
+          console.error(
+            'Bilet güncellenemedi:',
+            error
+          );
+
+          this.isSavingTicket = false;
+
+          this.ticketErrorMessage =
+            error.error?.message ??
+            error.error?.error ??
+            'Bilet güncellenirken hata oluştu.';
+
+          this.changeDetector.detectChanges();
+        }
+      });
+
+    return;
+  }
+
+  // Yeni bilet türü oluşturuluyor
+  this.ticketService
+    .createTicket({
+      event_id: this.editingEventId,
+      ticket_type: ticketType,
+      total_quantity: totalQuantity,
+      available_quantity: totalQuantity
+    })
+    .subscribe({
+      next: (response) => {
+  this.isSavingTicket = false;
+
+  this.cancelTicketForm();
+
+  this.ticketSuccessMessage =
+    response.message ??
+    'Yeni bilet türü başarıyla eklendi.';
+
+  if (this.editingEventId !== null) {
+    this.loadTickets(
+      this.editingEventId
+    );
+  }
+
+  this.changeDetector.detectChanges();
+},
+
+      error: (error) => {
+        console.error(
+          'Bilet oluşturulamadı:',
+          error
+        );
+
+        this.isSavingTicket = false;
+
+        this.ticketErrorMessage =
+          error.error?.message ??
+          error.error?.error ??
+          'Bilet oluşturulurken hata oluştu.';
+
+        this.changeDetector.detectChanges();
+      }
+    });
+}
+
+deleteTicket(ticket: Ticket): void {
+  const confirmation = window.confirm(
+    `"${ticket.ticket_type}" bilet türünü silmek istediğine emin misin?`
+  );
+
+  if (!confirmation) {
+    return;
+  }
+
+  this.ticketErrorMessage = '';
+  this.ticketSuccessMessage = '';
+
+  this.ticketService
+    .deleteTicket(ticket.ticket_id)
+    .subscribe({
+      next: (response) => {
+        this.tickets =
+          this.tickets.filter(
+            item =>
+              item.ticket_id !==
+              ticket.ticket_id
+          );
+
+        this.ticketSuccessMessage =
+          response.message ??
+          'Bilet başarıyla silindi.';
+
+        this.changeDetector.detectChanges();
+      },
+
+      error: (error) => {
+        console.error(
+          'Bilet silinemedi:',
+          error
+        );
+
+        this.ticketErrorMessage =
+          error.error?.message ??
+          error.error?.error ??
+          'Bilet silinirken hata oluştu.';
+
+        this.changeDetector.detectChanges();
+      }
+    });
+}
+  /*
+   * Admin paneline geri döner.
+   */
   cancel(): void {
     this.router.navigate(['/admin']);
   }
