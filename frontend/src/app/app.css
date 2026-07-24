@@ -18,11 +18,15 @@
 }
 
 .logo {
-  display: inline-flex;
-  align-items: center;
-  gap: 11px;
-  color: var(--text-color);
+  color: #212121;
+  font-size: 25px;
+  font-weight: 850;
+  letter-spacing: -0.04em;
   text-decoration: none;
+}
+
+.logo span {
+  color: #f65858;
 }
 
 .logo-mark {
