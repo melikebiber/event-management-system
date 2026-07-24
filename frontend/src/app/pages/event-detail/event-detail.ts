@@ -5,13 +5,18 @@ import {
 } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
+import {
+  ActivatedRoute,
+  Router
+} from '@angular/router';
 
 import { EventService } from '../../services/event';
+
 import {
   Ticket,
   TicketService
 } from '../../services/ticket';
+
 import {
   RegistrationService
 } from '../../services/registration';
@@ -27,13 +32,16 @@ interface CurrentUser {
 @Component({
   selector: 'app-event-detail',
   standalone: true,
-  imports: [CommonModule],
+  imports: [
+    CommonModule
+  ],
   templateUrl: './event-detail.html',
   styleUrl: './event-detail.css'
 })
 export class EventDetail implements OnInit {
 
   event: Event | null = null;
+
   tickets: Ticket[] = [];
   selectedTicket: Ticket | null = null;
 
@@ -41,6 +49,7 @@ export class EventDetail implements OnInit {
   isRegistering = false;
 
   errorMessage = '';
+
   registrationMessage = '';
   registrationSuccess = false;
 
@@ -54,10 +63,13 @@ export class EventDetail implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    const eventId = this.route.snapshot.paramMap.get('id');
+    const eventId =
+      this.route.snapshot.paramMap.get('id');
 
     if (!eventId) {
-      this.errorMessage = 'Etkinlik ID bilgisi bulunamadı.';
+      this.errorMessage =
+        'Etkinlik ID bilgisi bulunamadı.';
+
       this.isLoading = false;
       return;
     }
@@ -67,28 +79,35 @@ export class EventDetail implements OnInit {
   }
 
   getEventDetail(eventId: string): void {
-    this.eventService.getEventById(eventId).subscribe({
-      next: (response) => {
-        this.event = response.data;
-        this.isLoading = false;
-        this.errorMessage = '';
+    this.eventService
+      .getEventById(eventId)
+      .subscribe({
+        next: (response) => {
+          this.event =
+            response.data ?? response;
 
-        this.changeDetector.detectChanges();
-      },
-      error: (error: unknown) => {
-        console.error(
-          'Etkinlik detayı alınamadı:',
-          error
-        );
+          this.isLoading = false;
+          this.errorMessage = '';
 
-        this.event = null;
-        this.errorMessage =
-          'Etkinlik bilgileri alınamadı.';
-        this.isLoading = false;
+          this.changeDetector.detectChanges();
+        },
 
-        this.changeDetector.detectChanges();
-      }
-    });
+        error: (error: unknown) => {
+          console.error(
+            'Etkinlik detayı alınamadı:',
+            error
+          );
+
+          this.event = null;
+
+          this.errorMessage =
+            'Etkinlik bilgileri alınamadı.';
+
+          this.isLoading = false;
+
+          this.changeDetector.detectChanges();
+        }
+      });
   }
 
   getEventTickets(eventId: string): void {
@@ -96,7 +115,8 @@ export class EventDetail implements OnInit {
       .getTicketsByEventId(eventId)
       .subscribe({
         next: (response) => {
-          this.tickets = response.data;
+          this.tickets =
+            response.data ?? [];
 
           this.selectedTicket =
             this.tickets.find(
@@ -106,6 +126,7 @@ export class EventDetail implements OnInit {
 
           this.changeDetector.detectChanges();
         },
+
         error: (error: unknown) => {
           console.error(
             'Bilet bilgileri alınamadı:',
@@ -127,12 +148,14 @@ export class EventDetail implements OnInit {
     if (!this.event) {
       this.registrationMessage =
         'Etkinlik bilgisi bulunamadı.';
+
       return;
     }
 
     if (!this.selectedTicket) {
       this.registrationMessage =
         'Bu etkinlik için uygun bilet bulunamadı.';
+
       return;
     }
 
@@ -141,6 +164,7 @@ export class EventDetail implements OnInit {
     ) {
       this.registrationMessage =
         'Bu etkinlikte boş kontenjan kalmadı.';
+
       return;
     }
 
@@ -178,20 +202,27 @@ export class EventDetail implements OnInit {
     this.isRegistering = true;
 
     const registrationData = {
-      user_id: currentUser.id,
-      event_id: this.event.event_id,
-      ticket_id: this.selectedTicket.ticket_id
+      user_id:
+        currentUser.id,
+
+      event_id:
+        this.event.event_id,
+
+      ticket_id:
+        this.selectedTicket.ticket_id
     };
 
     this.registrationService
-      .createRegistration(registrationData)
+      .createRegistration(
+        registrationData
+      )
       .subscribe({
         next: (response) => {
           this.isRegistering = false;
           this.registrationSuccess = true;
 
           this.registrationMessage =
-            response.message ||
+            response.message ??
             'Etkinlik kaydı başarıyla oluşturuldu.';
 
           if (
@@ -204,13 +235,14 @@ export class EventDetail implements OnInit {
 
           this.changeDetector.detectChanges();
         },
+
         error: (error) => {
           this.isRegistering = false;
           this.registrationSuccess = false;
 
           this.registrationMessage =
-            error.error?.message ||
-            error.error?.error ||
+            error.error?.message ??
+            error.error?.error ??
             'Etkinlik kaydı oluşturulamadı.';
 
           console.error(
@@ -222,53 +254,62 @@ export class EventDetail implements OnInit {
         }
       });
   }
-getEventImage(
-  categoryName: string,
-  eventTitle: string
-): string {
-  const category =
-    categoryName
-      .trim()
-      .toLocaleLowerCase('tr-TR');
 
-  const title =
-    eventTitle
-      .trim()
-      .toLocaleLowerCase('tr-TR');
+  getEventImage(
+    categoryName: string,
+    eventTitle: string
+  ): string {
+    const category =
+      categoryName
+        ?.trim()
+        .toLocaleLowerCase('tr-TR') ?? '';
 
-  if (
-    title.includes('boncuk') ||
-    title.includes('kolye')
-  ) {
-    return '/images/events/jewelry-workshop.jpg';
-  }
+    const title =
+      eventTitle
+        ?.trim()
+        .toLocaleLowerCase('tr-TR') ?? '';
 
-  if (category.includes('seminer')) {
-    return '/images/events/seminar.jpg';
-  }
+    if (
+      title.includes('boncuk') ||
+      title.includes('kolye')
+    ) {
+      return '/images/events/bead.jpg';
+    }
 
-  if (category.includes('workshop')) {
-    return '/images/events/workshop.jpg';
-  }
+    if (category.includes('seminer')) {
+      return '/images/events/seminar.jpg';
+    }
 
-  if (category.includes('konferans')) {
+    if (
+      category.includes('workshop') ||
+      category.includes('atölye')
+    ) {
+      return '/images/events/workshop.jpg';
+    }
+
+    if (category.includes('konferans')) {
+      return '/images/events/conference.jpg';
+    }
+
+    if (category.includes('konser')) {
+      return '/images/events/concert.jpg';
+    }
+
+    if (category.includes('sergi')) {
+      return '/images/events/exhibition.jpg';
+    }
+
+    if (
+      category.includes('tiyatro') ||
+      category.includes('kültür') ||
+      category.includes('sanat')
+    ) {
+      return '/images/events/theatre.jpg';
+    }
+
     return '/images/events/conference.jpg';
   }
 
-  if (category.includes('konser')) {
-    return '/images/events/concert.jpg';
-  }
-
-  if (
-    category.includes('tiyatro') ||
-    category.includes('kültür') ||
-    category.includes('sanat')
-  ) {
-    return '/images/events/theatre.jpg';
-  }
-
-  return '/images/events/default.jpg';
-}
   goBack(): void {
     this.router.navigate(['/events']);
   }

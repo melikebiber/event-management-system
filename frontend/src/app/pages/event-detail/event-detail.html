@@ -43,18 +43,18 @@
     </button>
 
     <!-- Üst başlık alanı -->
-   <header class="event-hero">
+
+<header class="event-hero">
 
   <div class="hero-image-wrapper">
 
     <img
+      *ngIf="event"
       class="hero-image"
-      [src]="
-        getEventImage(
-          event.category.category_name,
-          event.title
-        )
-      "
+      [src]="getEventImage(
+        event.category?.category_name || '',
+        event.title || ''
+      )"
       [alt]="event.title"
     >
 
@@ -87,7 +87,9 @@
       ETKİNLİK DETAYI
     </span>
 
-    <h1>{{ event.title }}</h1>
+    <h1>
+      {{ event.title }}
+    </h1>
 
     <p class="description">
       {{ event.description }}
