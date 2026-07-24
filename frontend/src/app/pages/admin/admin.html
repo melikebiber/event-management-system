@@ -201,44 +201,48 @@
               <td>
                 <div class="action-buttons">
 
-                  <a
-                    class="view-button"
-                    [routerLink]="[
-                      '/events',
-                      event.event_id
-                    ]"
-                  >
-                    İncele
-                  <a
-  class="edit-button"
-  [routerLink]="[
-    '/admin/events',
-    event.event_id,
-    'edit'
-  ]"
->
-  Düzenle
-</a>
+  <a
+    class="view-button"
+    [routerLink]="[
+      '/events',
+      event.event_id
+    ]"
+  >
+    İncele
+  </a>
 
-                 <button
-  type="button"
-  class="delete-button"
-  (click)="
-    $event.stopPropagation();
-    deleteEvent(
+  <a
+    class="edit-button"
+    [routerLink]="[
+      '/admin/events',
       event.event_id,
-      event.title
-    )
-  "
-  [disabled]="
-    isDeleting &&
-    deletingEventId === event.event_id
-  "
->
-  {{
-    isDeleting &&
-    deletingEventId === event.event_id
-      ? 'Siliniyor...'
-      : 'Sil'
-  }}
-</button>
+      'edit'
+    ]"
+  >
+    Düzenle
+  </a>
+
+  <button
+    type="button"
+    class="delete-button"
+    (click)="
+      $event.stopPropagation();
+      deleteEvent(
+        event.event_id,
+        event.title
+      )
+    "
+    [disabled]="
+      isDeleting &&
+      deletingEventId === event.event_id
+    "
+  >
+    {{
+      isDeleting &&
+      deletingEventId === event.event_id
+        ? 'Siliniyor...'
+        : 'Sil'
+    }}
+  </button>
+
+</div>
