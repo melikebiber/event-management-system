@@ -8,6 +8,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
 import { EventService } from '../../services/event';
+import { Auth } from '../../services/auth';
 import { Event } from '../../models/event.model';
 
 @Component({
@@ -29,11 +30,26 @@ export class Home implements OnInit {
 
   constructor(
     private eventService: EventService,
+    private authService: Auth,
     private changeDetector: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
     this.getUpcomingEvents();
+  }
+
+  /**
+   * Kullanıcının giriş yapıp yapmadığını kontrol eder.
+   */
+  get isLoggedIn(): boolean {
+    return this.authService.isLoggedIn();
+  }
+
+  /**
+   * Giriş yapan kullanıcının admin olup olmadığını kontrol eder.
+   */
+  get isAdmin(): boolean {
+    return this.authService.isAdmin();
   }
 
   getUpcomingEvents(): void {
@@ -46,8 +62,10 @@ export class Home implements OnInit {
         today.setHours(0, 0, 0, 0);
 
         this.upcomingEvents = (response.data ?? [])
-          .filter(event => {
-            const eventDate = new Date(event.event_date);
+          .filter((event) => {
+            const eventDate = new Date(
+              event.event_date
+            );
 
             return (
               event.status === 'active' &&
@@ -68,7 +86,6 @@ export class Home implements OnInit {
           .slice(0, 4);
 
         this.isLoading = false;
-
         this.changeDetector.detectChanges();
       },
 
@@ -79,57 +96,63 @@ export class Home implements OnInit {
         );
 
         this.upcomingEvents = [];
+
         this.errorMessage =
           'Yaklaşan etkinlikler şu anda gösterilemiyor.';
-        this.isLoading = false;
 
+        this.isLoading = false;
         this.changeDetector.detectChanges();
       }
     });
   }
+
   getEventImage(
-  categoryName: string,
-  eventTitle: string
-): string {
-  const category = categoryName
-    .trim()
-    .toLocaleLowerCase('tr-TR');
+    categoryName: string,
+    eventTitle: string
+  ): string {
+    const category = categoryName
+      .trim()
+      .toLocaleLowerCase('tr-TR');
 
-  const title = eventTitle
-    .trim()
-    .toLocaleLowerCase('tr-TR');
+    const title = eventTitle
+      .trim()
+      .toLocaleLowerCase('tr-TR');
 
-  if (
-    title.includes('boncuk') ||
-    title.includes('kolye')
-  ) {
-    return '/images/events/bead.jpg';
+    if (
+      title.includes('boncuk') ||
+      title.includes('kolye')
+    ) {
+      return '/images/events/bead.jpg';
+    }
+
+    if (category.includes('seminer')) {
+      return '/images/events/seminar.jpg';
+    }
+
+    if (category.includes('workshop')) {
+      return '/images/events/workshop.jpg';
+    }
+
+    if (category.includes('konferans')) {
+      return '/images/events/conference.jpg';
+    }
+
+    if (category.includes('konser')) {
+      return '/images/events/concert.jpg';
+    }
+
+    if (category.includes('sergi')) {
+      return '/images/events/exhibition.jpg';
+    }
+
+    if (
+      category.includes('tiyatro') ||
+      category.includes('kültür') ||
+      category.includes('sanat')
+    ) {
+      return '/images/events/theatre.jpg';
+    }
+
+    return '/images/events/default.jpg';
   }
-
-  if (category.includes('seminer')) {
-    return '/images/events/seminar.jpg';
-  }
-
-  if (category.includes('workshop')) {
-    return '/images/events/workshop.jpg';
-  }
-
-  if (category.includes('konferans')) {
-    return '/images/events/conference.jpg';
-  }
-
-  if (category.includes('konser')) {
-    return '/images/events/concert.jpg';
-  }
-
-  if (
-    category.includes('tiyatro') ||
-    category.includes('kültür') ||
-    category.includes('sanat')
-  ) {
-    return '/images/events/theatre.jpg';
-  }
-
-  return '/images/events/default.jpg';
-}
 }
