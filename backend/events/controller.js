@@ -1,17 +1,30 @@
 const sequelize = require('../common/database');
-const defineEvent = require('../common/models/Event');
-const defineUser = require('../common/models/User');
-const defineCategory = require('../common/models/Category');
-const defineLocation = require('../common/models/Location');
-const defineTicket = require('../common/models/Ticket');
-const defineRegistration = require('../common/models/Registration');
+
+const defineEvent =
+  require('../common/models/Event');
+
+const defineUser =
+  require('../common/models/User');
+
+const defineCategory =
+  require('../common/models/Category');
+
+const defineLocation =
+  require('../common/models/Location');
+
+const defineTicket =
+  require('../common/models/Ticket');
+
+const defineRegistration =
+  require('../common/models/Registration');
 
 const Event = defineEvent(sequelize);
 const User = defineUser(sequelize);
 const Category = defineCategory(sequelize);
 const Location = defineLocation(sequelize);
 const Ticket = defineTicket(sequelize);
-const Registration = defineRegistration(sequelize);
+const Registration =
+  defineRegistration(sequelize);
 
 // İlişkiler
 Event.belongsTo(User, {
@@ -29,6 +42,28 @@ Event.belongsTo(Location, {
   as: 'location'
 });
 
+/**
+ * Bir etkinliğe ait toplam bilet kontenjanını hesaplar.
+ */
+const calculateEventTicketTotal = async (
+  eventId,
+  transaction = null
+) => {
+  const tickets = await Ticket.findAll({
+    where: {
+      event_id: eventId
+    },
+    transaction
+  });
+
+  return tickets.reduce(
+    (total, currentTicket) =>
+      total +
+      Number(currentTicket.total_quantity || 0),
+    0
+  );
+};
+
 // Tüm etkinlikleri listeler
 exports.getAllEvents = async (req, res) => {
   try {
@@ -37,12 +72,20 @@ exports.getAllEvents = async (req, res) => {
         {
           model: User,
           as: 'organizer',
-          attributes: ['user_id', 'name', 'surname', 'email']
+          attributes: [
+            'user_id',
+            'name',
+            'surname',
+            'email'
+          ]
         },
         {
           model: Category,
           as: 'category',
-          attributes: ['category_id', 'category_name']
+          attributes: [
+            'category_id',
+            'category_name'
+          ]
         },
         {
           model: Location,
@@ -78,32 +121,43 @@ exports.getEventById = async (req, res) => {
   try {
     const { eventId } = req.params;
 
-    const event = await Event.findByPk(eventId, {
-      include: [
-        {
-          model: User,
-          as: 'organizer',
-          attributes: ['user_id', 'name', 'surname', 'email']
-        },
-        {
-          model: Category,
-          as: 'category',
-          attributes: ['category_id', 'category_name']
-        },
-        {
-          model: Location,
-          as: 'location',
-          attributes: [
-            'location_id',
-            'location_name',
-            'address',
-            'city',
-            'district',
-            'capacity'
-          ]
-        }
-      ]
-    });
+    const event = await Event.findByPk(
+      eventId,
+      {
+        include: [
+          {
+            model: User,
+            as: 'organizer',
+            attributes: [
+              'user_id',
+              'name',
+              'surname',
+              'email'
+            ]
+          },
+          {
+            model: Category,
+            as: 'category',
+            attributes: [
+              'category_id',
+              'category_name'
+            ]
+          },
+          {
+            model: Location,
+            as: 'location',
+            attributes: [
+              'location_id',
+              'location_name',
+              'address',
+              'city',
+              'district',
+              'capacity'
+            ]
+          }
+        ]
+      }
+    );
 
     if (!event) {
       return res.status(404).json({
@@ -140,7 +194,11 @@ exports.createEvent = async (req, res) => {
       location_id
     } = req.body;
 
-    if (!title || !event_date || !organizer_id) {
+    if (
+      !title ||
+      !event_date ||
+      !organizer_id
+    ) {
       return res.status(400).json({
         success: false,
         message:
@@ -148,58 +206,105 @@ exports.createEvent = async (req, res) => {
       });
     }
 
-    if (capacity !== undefined && capacity !== null && capacity < 0) {
+    const parsedCapacity =
+      capacity !== undefined &&
+      capacity !== null
+        ? Number(capacity)
+        : null;
+
+    if (
+      parsedCapacity !== null &&
+      (
+        !Number.isInteger(parsedCapacity) ||
+        parsedCapacity < 0
+      )
+    ) {
       return res.status(400).json({
         success: false,
-        message: 'Kapasite negatif olamaz.'
+        message:
+          'Kapasite negatif olmayan bir tam sayı olmalıdır.'
       });
     }
 
-    const organizer = await User.findByPk(organizer_id);
+    const organizer = await User.findByPk(
+      organizer_id
+    );
 
     if (!organizer) {
       return res.status(400).json({
         success: false,
-        message: 'Belirtilen organizer_id için kullanıcı bulunamadı.'
+        message:
+          'Belirtilen organizer_id için kullanıcı bulunamadı.'
       });
     }
 
-    if (category_id !== undefined && category_id !== null) {
-      const category = await Category.findByPk(category_id);
+    if (
+      category_id !== undefined &&
+      category_id !== null
+    ) {
+      const category = await Category.findByPk(
+        category_id
+      );
 
       if (!category) {
         return res.status(400).json({
           success: false,
-          message: 'Belirtilen category_id için kategori bulunamadı.'
+          message:
+            'Belirtilen category_id için kategori bulunamadı.'
         });
       }
     }
 
-    if (location_id !== undefined && location_id !== null) {
-      const location = await Location.findByPk(location_id);
+    if (
+      location_id !== undefined &&
+      location_id !== null
+    ) {
+      const location = await Location.findByPk(
+        location_id
+      );
 
       if (!location) {
         return res.status(400).json({
           success: false,
-          message: 'Belirtilen location_id için konum bulunamadı.'
+          message:
+            'Belirtilen location_id için konum bulunamadı.'
+        });
+      }
+
+      if (
+        parsedCapacity !== null &&
+        location.capacity !== null &&
+        location.capacity !== undefined &&
+        parsedCapacity > Number(location.capacity)
+      ) {
+        return res.status(400).json({
+          success: false,
+          message:
+            `Etkinlik kapasitesi seçilen mekânın kapasitesini aşamaz. ` +
+            `Mekân kapasitesi: ${location.capacity}.`
         });
       }
     }
 
-    if (start_time && end_time && start_time >= end_time) {
+    if (
+      start_time &&
+      end_time &&
+      start_time >= end_time
+    ) {
       return res.status(400).json({
         success: false,
-        message: 'Bitiş saati başlangıç saatinden sonra olmalıdır.'
+        message:
+          'Bitiş saati başlangıç saatinden sonra olmalıdır.'
       });
     }
 
     const event = await Event.create({
-      title,
+      title: title.trim(),
       description: description || null,
       event_date,
       start_time: start_time || null,
       end_time: end_time || null,
-      capacity: capacity ?? null,
+      capacity: parsedCapacity,
       status: status || 'active',
       organizer_id,
       category_id: category_id ?? null,
@@ -208,7 +313,8 @@ exports.createEvent = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: 'Etkinlik başarıyla oluşturuldu.',
+      message:
+        'Etkinlik başarıyla oluşturuldu.',
       data: event
     });
   } catch (error) {
@@ -218,14 +324,24 @@ exports.createEvent = async (req, res) => {
     });
   }
 };
+
 // Etkinliği günceller
 exports.updateEvent = async (req, res) => {
+  const transaction = await sequelize.transaction();
+
   try {
     const { eventId } = req.params;
 
-    const event = await Event.findByPk(eventId);
+    const event = await Event.findByPk(
+      eventId,
+      {
+        transaction
+      }
+    );
 
     if (!event) {
+      await transaction.rollback();
+
       return res.status(404).json({
         success: false,
         message: 'Etkinlik bulunamadı.'
@@ -245,72 +361,183 @@ exports.updateEvent = async (req, res) => {
       location_id
     } = req.body;
 
-    if (capacity !== undefined && capacity < 0) {
+    const newCapacity =
+      capacity !== undefined &&
+      capacity !== null
+        ? Number(capacity)
+        : Number(event.capacity);
+
+    if (
+      !Number.isInteger(newCapacity) ||
+      newCapacity < 0
+    ) {
+      await transaction.rollback();
+
       return res.status(400).json({
         success: false,
-        message: 'Kapasite negatif olamaz.'
+        message:
+          'Kapasite negatif olmayan bir tam sayı olmalıdır.'
       });
     }
 
-    if (start_time && end_time && start_time >= end_time) {
+    const finalStartTime =
+      start_time ?? event.start_time;
+
+    const finalEndTime =
+      end_time ?? event.end_time;
+
+    if (
+      finalStartTime &&
+      finalEndTime &&
+      finalStartTime >= finalEndTime
+    ) {
+      await transaction.rollback();
+
       return res.status(400).json({
         success: false,
-        message: 'Bitiş saati başlangıç saatinden sonra olmalıdır.'
+        message:
+          'Bitiş saati başlangıç saatinden sonra olmalıdır.'
       });
     }
 
     if (organizer_id !== undefined) {
-      const organizer = await User.findByPk(organizer_id);
+      const organizer = await User.findByPk(
+        organizer_id,
+        {
+          transaction
+        }
+      );
 
       if (!organizer) {
+        await transaction.rollback();
+
         return res.status(400).json({
           success: false,
-          message: 'Belirtilen organizer_id için kullanıcı bulunamadı.'
+          message:
+            'Belirtilen organizer_id için kullanıcı bulunamadı.'
         });
       }
     }
 
-    if (category_id !== undefined && category_id !== null) {
-      const category = await Category.findByPk(category_id);
+    if (
+      category_id !== undefined &&
+      category_id !== null
+    ) {
+      const category = await Category.findByPk(
+        category_id,
+        {
+          transaction
+        }
+      );
 
       if (!category) {
+        await transaction.rollback();
+
         return res.status(400).json({
           success: false,
-          message: 'Belirtilen category_id için kategori bulunamadı.'
+          message:
+            'Belirtilen category_id için kategori bulunamadı.'
         });
       }
     }
 
-    if (location_id !== undefined && location_id !== null) {
-      const location = await Location.findByPk(location_id);
+    const finalLocationId =
+      location_id !== undefined
+        ? location_id
+        : event.location_id;
+
+    if (
+      finalLocationId !== undefined &&
+      finalLocationId !== null
+    ) {
+      const location = await Location.findByPk(
+        finalLocationId,
+        {
+          transaction
+        }
+      );
 
       if (!location) {
+        await transaction.rollback();
+
         return res.status(400).json({
           success: false,
-          message: 'Belirtilen location_id için konum bulunamadı.'
+          message:
+            'Belirtilen location_id için konum bulunamadı.'
+        });
+      }
+
+      if (
+        location.capacity !== null &&
+        location.capacity !== undefined &&
+        newCapacity > Number(location.capacity)
+      ) {
+        await transaction.rollback();
+
+        return res.status(400).json({
+          success: false,
+          message:
+            `Etkinlik kapasitesi seçilen mekânın kapasitesini aşamaz. ` +
+            `Mekân kapasitesi: ${location.capacity}.`
         });
       }
     }
 
-    await event.update({
-      title: title ?? event.title,
-      description: description ?? event.description,
-      event_date: event_date ?? event.event_date,
-      start_time: start_time ?? event.start_time,
-      end_time: end_time ?? event.end_time,
-      capacity: capacity ?? event.capacity,
-      status: status ?? event.status,
-      organizer_id: organizer_id ?? event.organizer_id,
-      category_id: category_id ?? event.category_id,
-      location_id: location_id ?? event.location_id
-    });
+    const totalTicketCapacity =
+      await calculateEventTicketTotal(
+        eventId,
+        transaction
+      );
+
+    if (newCapacity < totalTicketCapacity) {
+      await transaction.rollback();
+
+      return res.status(400).json({
+        success: false,
+        message:
+          `Etkinlik kapasitesi mevcut bilet kontenjanlarının toplamından az olamaz. ` +
+          `Mevcut toplam bilet kontenjanı: ${totalTicketCapacity}.`
+      });
+    }
+
+    await event.update(
+      {
+        title:
+          title !== undefined
+            ? title.trim()
+            : event.title,
+        description:
+          description ?? event.description,
+        event_date:
+          event_date ?? event.event_date,
+        start_time: finalStartTime,
+        end_time: finalEndTime,
+        capacity: newCapacity,
+        status: status ?? event.status,
+        organizer_id:
+          organizer_id ?? event.organizer_id,
+        category_id:
+          category_id !== undefined
+            ? category_id
+            : event.category_id,
+        location_id: finalLocationId
+      },
+      {
+        transaction
+      }
+    );
+
+    await transaction.commit();
 
     return res.status(200).json({
       success: true,
-      message: 'Etkinlik başarıyla güncellendi.',
+      message:
+        'Etkinlik başarıyla güncellendi.',
       data: event
     });
   } catch (error) {
+    await transaction.rollback();
+
     return res.status(500).json({
       success: false,
       error: error.message
@@ -325,9 +552,12 @@ exports.deleteEvent = async (req, res) => {
   try {
     const { eventId } = req.params;
 
-    const event = await Event.findByPk(eventId, {
-      transaction
-    });
+    const event = await Event.findByPk(
+      eventId,
+      {
+        transaction
+      }
+    );
 
     if (!event) {
       await transaction.rollback();
@@ -338,7 +568,6 @@ exports.deleteEvent = async (req, res) => {
       });
     }
 
-    // Önce etkinliğe bağlı katılım kayıtlarını siler
     await Registration.destroy({
       where: {
         event_id: eventId
@@ -346,7 +575,6 @@ exports.deleteEvent = async (req, res) => {
       transaction
     });
 
-    // Sonra etkinliğe bağlı biletleri siler
     await Ticket.destroy({
       where: {
         event_id: eventId
@@ -354,7 +582,6 @@ exports.deleteEvent = async (req, res) => {
       transaction
     });
 
-    // En son etkinliği siler
     await event.destroy({
       transaction
     });

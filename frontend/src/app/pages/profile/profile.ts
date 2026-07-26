@@ -5,12 +5,23 @@ import {
 } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import {
+  Router,
+  RouterLink
+} from '@angular/router';
 
 import {
   UserProfile,
   UserService
 } from '../../services/user';
+
+interface HttpErrorResponse {
+  status?: number;
+
+  error?: {
+    message?: string;
+  };
+}
 
 @Component({
   selector: 'app-profile',
@@ -72,12 +83,13 @@ export class Profile implements OnInit {
           this.changeDetector.detectChanges();
         },
 
-        error: (error) => {
+        error: (error: HttpErrorResponse) => {
           console.error(
             'Profil bilgileri alınamadı:',
             error
           );
 
+          this.currentUser = null;
           this.isLoading = false;
 
           this.errorMessage =
@@ -89,6 +101,7 @@ export class Profile implements OnInit {
             error.status === 403
           ) {
             this.logout();
+            return;
           }
 
           this.changeDetector.detectChanges();
@@ -101,10 +114,14 @@ export class Profile implements OnInit {
       return 'Kullanıcı';
     }
 
-    return `
-      ${this.currentUser.name ?? ''}
-      ${this.currentUser.surname ?? ''}
-    `.trim() || 'Kullanıcı';
+    const name =
+      this.currentUser.name?.trim() ?? '';
+
+    const surname =
+      this.currentUser.surname?.trim() ?? '';
+
+    return `${name} ${surname}`.trim() ||
+      'Kullanıcı';
   }
 
   get userInitial(): string {

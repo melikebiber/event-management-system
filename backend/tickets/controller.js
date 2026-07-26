@@ -10,6 +10,38 @@ Ticket.belongsTo(Event, {
   as: 'event'
 });
 
+/**
+ * Bir etkinliğe ait biletlerin toplam kontenjanını hesaplar.
+ * ignoreTicketId verilirse o bilet hesaba katılmaz.
+ */
+const calculateTicketTotal = async (
+  eventId,
+  ignoreTicketId = null,
+  transaction = null
+) => {
+  const tickets = await Ticket.findAll({
+    where: {
+      event_id: eventId
+    },
+    transaction
+  });
+
+  return tickets.reduce((total, currentTicket) => {
+    if (
+      ignoreTicketId !== null &&
+      Number(currentTicket.ticket_id) ===
+        Number(ignoreTicketId)
+    ) {
+      return total;
+    }
+
+    return (
+      total +
+      Number(currentTicket.total_quantity || 0)
+    );
+  }, 0);
+};
+
 // Tüm biletleri listeler
 exports.getAllTickets = async (req, res) => {
   try {
@@ -18,7 +50,11 @@ exports.getAllTickets = async (req, res) => {
         {
           model: Event,
           as: 'event',
-          attributes: ['event_id', 'title', 'event_date']
+          attributes: [
+            'event_id',
+            'title',
+            'event_date'
+          ]
         }
       ],
       order: [['ticket_id', 'ASC']]
@@ -35,6 +71,7 @@ exports.getAllTickets = async (req, res) => {
     });
   }
 };
+
 // Etkinliğe ait biletleri listeler
 exports.getTicketsByEventId = async (req, res) => {
   try {
@@ -70,6 +107,8 @@ exports.getTicketsByEventId = async (req, res) => {
 
 // Yeni bilet türü oluşturur
 exports.createTicket = async (req, res) => {
+  const transaction = await sequelize.transaction();
+
   try {
     const {
       event_id,
@@ -84,6 +123,8 @@ exports.createTicket = async (req, res) => {
       total_quantity === undefined ||
       available_quantity === undefined
     ) {
+      await transaction.rollback();
+
       return res.status(400).json({
         success: false,
         message:
@@ -91,14 +132,39 @@ exports.createTicket = async (req, res) => {
       });
     }
 
-    if (total_quantity < 0 || available_quantity < 0) {
+    const totalQuantity = Number(total_quantity);
+    const availableQuantity = Number(
+      available_quantity
+    );
+
+    if (
+      !Number.isInteger(totalQuantity) ||
+      !Number.isInteger(availableQuantity)
+    ) {
+      await transaction.rollback();
+
+      return res.status(400).json({
+        success: false,
+        message:
+          'Bilet miktarları tam sayı olmalıdır.'
+      });
+    }
+
+    if (
+      totalQuantity < 0 ||
+      availableQuantity < 0
+    ) {
+      await transaction.rollback();
+
       return res.status(400).json({
         success: false,
         message: 'Bilet miktarları negatif olamaz.'
       });
     }
 
-    if (available_quantity > total_quantity) {
+    if (availableQuantity > totalQuantity) {
+      await transaction.rollback();
+
       return res.status(400).json({
         success: false,
         message:
@@ -106,48 +172,102 @@ exports.createTicket = async (req, res) => {
       });
     }
 
-    const event = await Event.findByPk(event_id);
+    const event = await Event.findByPk(event_id, {
+      transaction
+    });
 
     if (!event) {
+      await transaction.rollback();
+
       return res.status(400).json({
         success: false,
-        message: 'Belirtilen event_id için etkinlik bulunamadı.'
+        message:
+          'Belirtilen event_id için etkinlik bulunamadı.'
       });
     }
 
-    const ticket = await Ticket.create({
-      event_id,
-      ticket_type,
-      total_quantity,
-      available_quantity
-    });
+    const currentTicketTotal =
+      await calculateTicketTotal(
+        event_id,
+        null,
+        transaction
+      );
+
+    const newTicketTotal =
+      currentTicketTotal + totalQuantity;
+
+    if (
+      event.capacity !== null &&
+      event.capacity !== undefined &&
+      newTicketTotal > Number(event.capacity)
+    ) {
+      const remainingCapacity = Math.max(
+        Number(event.capacity) -
+          currentTicketTotal,
+        0
+      );
+
+      await transaction.rollback();
+
+      return res.status(400).json({
+        success: false,
+        message:
+          `Bilet kontenjanlarının toplamı etkinlik kapasitesini aşamaz. ` +
+          `Kalan kullanılabilir kapasite: ${remainingCapacity}.`
+      });
+    }
+
+    const ticket = await Ticket.create(
+      {
+        event_id,
+        ticket_type: ticket_type.trim(),
+        total_quantity: totalQuantity,
+        available_quantity: availableQuantity
+      },
+      {
+        transaction
+      }
+    );
+
+    await transaction.commit();
 
     return res.status(201).json({
       success: true,
-      message: 'Bilet türü başarıyla oluşturuldu.',
+      message:
+        'Bilet türü başarıyla oluşturuldu.',
       data: ticket
     });
   } catch (error) {
+    await transaction.rollback();
+
     return res.status(500).json({
       success: false,
       error: error.message
     });
   }
 };
+
 // ID değerine göre bilet getirir
 exports.getTicketById = async (req, res) => {
   try {
     const { ticketId } = req.params;
 
-    const ticket = await Ticket.findByPk(ticketId, {
-      include: [
-        {
-          model: Event,
-          as: 'event',
-          attributes: ['event_id', 'title', 'event_date']
-        }
-      ]
-    });
+    const ticket = await Ticket.findByPk(
+      ticketId,
+      {
+        include: [
+          {
+            model: Event,
+            as: 'event',
+            attributes: [
+              'event_id',
+              'title',
+              'event_date'
+            ]
+          }
+        ]
+      }
+    );
 
     if (!ticket) {
       return res.status(404).json({
@@ -170,12 +290,21 @@ exports.getTicketById = async (req, res) => {
 
 // Bilet bilgilerini günceller
 exports.updateTicket = async (req, res) => {
+  const transaction = await sequelize.transaction();
+
   try {
     const { ticketId } = req.params;
 
-    const ticket = await Ticket.findByPk(ticketId);
+    const ticket = await Ticket.findByPk(
+      ticketId,
+      {
+        transaction
+      }
+    );
 
     if (!ticket) {
+      await transaction.rollback();
+
       return res.status(404).json({
         success: false,
         message: 'Bilet bulunamadı.'
@@ -189,22 +318,50 @@ exports.updateTicket = async (req, res) => {
       available_quantity
     } = req.body;
 
-    if (event_id !== undefined) {
-      const event = await Event.findByPk(event_id);
+    const targetEventId =
+      event_id ?? ticket.event_id;
 
-      if (!event) {
-        return res.status(400).json({
-          success: false,
-          message: 'Belirtilen etkinlik bulunamadı.'
-        });
+    const event = await Event.findByPk(
+      targetEventId,
+      {
+        transaction
       }
+    );
+
+    if (!event) {
+      await transaction.rollback();
+
+      return res.status(400).json({
+        success: false,
+        message: 'Belirtilen etkinlik bulunamadı.'
+      });
     }
 
-    const newTotal = total_quantity ?? ticket.total_quantity;
-    const newAvailable =
-      available_quantity ?? ticket.available_quantity;
+    const newTotal = Number(
+      total_quantity ?? ticket.total_quantity
+    );
+
+    const newAvailable = Number(
+      available_quantity ??
+        ticket.available_quantity
+    );
+
+    if (
+      !Number.isInteger(newTotal) ||
+      !Number.isInteger(newAvailable)
+    ) {
+      await transaction.rollback();
+
+      return res.status(400).json({
+        success: false,
+        message:
+          'Bilet miktarları tam sayı olmalıdır.'
+      });
+    }
 
     if (newTotal < 0 || newAvailable < 0) {
+      await transaction.rollback();
+
       return res.status(400).json({
         success: false,
         message: 'Bilet miktarları negatif olamaz.'
@@ -212,6 +369,8 @@ exports.updateTicket = async (req, res) => {
     }
 
     if (newAvailable > newTotal) {
+      await transaction.rollback();
+
       return res.status(400).json({
         success: false,
         message:
@@ -219,12 +378,70 @@ exports.updateTicket = async (req, res) => {
       });
     }
 
-    await ticket.update({
-      event_id: event_id ?? ticket.event_id,
-      ticket_type: ticket_type ?? ticket.ticket_type,
-      total_quantity: newTotal,
-      available_quantity: newAvailable
-    });
+    const usedTicketCount =
+      Number(ticket.total_quantity) -
+      Number(ticket.available_quantity);
+
+    if (newTotal < usedTicketCount) {
+      await transaction.rollback();
+
+      return res.status(400).json({
+        success: false,
+        message:
+          `Toplam bilet sayısı kullanılan bilet sayısından az olamaz. ` +
+          `Bu bilet türünde ${usedTicketCount} bilet kullanılmıştır.`
+      });
+    }
+
+    const otherTicketsTotal =
+      await calculateTicketTotal(
+        targetEventId,
+        Number(ticket.ticket_id),
+        transaction
+      );
+
+    const updatedTicketTotal =
+      otherTicketsTotal + newTotal;
+
+    if (
+      event.capacity !== null &&
+      event.capacity !== undefined &&
+      updatedTicketTotal >
+        Number(event.capacity)
+    ) {
+      const remainingCapacity = Math.max(
+        Number(event.capacity) -
+          otherTicketsTotal,
+        0
+      );
+
+      await transaction.rollback();
+
+      return res.status(400).json({
+        success: false,
+        message:
+          `Bilet kontenjanlarının toplamı etkinlik kapasitesini aşamaz. ` +
+          `Bu bilet türü için kullanılabilir en yüksek kontenjan: ` +
+          `${remainingCapacity}.`
+      });
+    }
+
+    await ticket.update(
+      {
+        event_id: targetEventId,
+        ticket_type:
+          ticket_type !== undefined
+            ? ticket_type.trim()
+            : ticket.ticket_type,
+        total_quantity: newTotal,
+        available_quantity: newAvailable
+      },
+      {
+        transaction
+      }
+    );
+
+    await transaction.commit();
 
     return res.status(200).json({
       success: true,
@@ -232,6 +449,8 @@ exports.updateTicket = async (req, res) => {
       data: ticket
     });
   } catch (error) {
+    await transaction.rollback();
+
     return res.status(500).json({
       success: false,
       error: error.message
@@ -244,7 +463,9 @@ exports.deleteTicket = async (req, res) => {
   try {
     const { ticketId } = req.params;
 
-    const ticket = await Ticket.findByPk(ticketId);
+    const ticket = await Ticket.findByPk(
+      ticketId
+    );
 
     if (!ticket) {
       return res.status(404).json({
@@ -260,7 +481,10 @@ exports.deleteTicket = async (req, res) => {
       message: 'Bilet başarıyla silindi.'
     });
   } catch (error) {
-    if (error.name === 'SequelizeForeignKeyConstraintError') {
+    if (
+      error.name ===
+      'SequelizeForeignKeyConstraintError'
+    ) {
       return res.status(409).json({
         success: false,
         message:
