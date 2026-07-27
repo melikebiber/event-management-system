@@ -92,7 +92,7 @@ export class MyEvents implements OnInit { //OnInit, Angular bileşeni açıldı�
           this.isLoading = false;
           this.errorMessage =
             error.error?.message ??
-            'Etkinliklerin yüklenirken bir hata oluştu.';
+            'Etkinlikler yüklenirken bir hata oluştu.';
 
           this.changeDetector.detectChanges();
         }

@@ -3,11 +3,9 @@ import {
   Component,
   OnInit
 } from '@angular/core';
-
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-
 import { EventService } from '../../services/event';
 import { Event } from '../../models/event.model';
 
@@ -39,7 +37,7 @@ export class Events implements OnInit {
     private changeDetector: ChangeDetectorRef
   ) {}
 
-  ngOnInit(): void {
+  ngOnInit(): void { //sayfa açılır açılmaz etkinlikleri getir.
     this.getEvents();
   }
 
@@ -161,7 +159,7 @@ getEventImage(
         event.event_date === this.selectedDate;
 
       return categoryMatches && cityMatches && dateMatches;
-    });
+    }); //etkinliğin gösterilebilmesi için kategori ve şehir ve tarih eşleşmeli
   }
 
   clearFilters(): void {

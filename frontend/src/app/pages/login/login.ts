@@ -48,7 +48,7 @@ export class Login {
   });
 
   constructor(
-    private authService: Auth,
+    private authService: Auth, //login isteğini backende göndermek için kullanılır.
     private router: Router
   ) {}
 
@@ -59,7 +59,7 @@ export class Login {
     }
 
     this.isLoading = true;
-    this.loginMessage = '';
+    this.loginMessage = ''; //daha önce ekranda kalan mesaj temizlenir
 
     const loginData =
       this.loginForm.getRawValue();
@@ -93,7 +93,7 @@ export class Login {
 
           if (response.user) {
             const userId =
-              response.user.user_id ??
+              response.user.user_id ?? //önce user_id değerini kullan yoksa id değerini kullan
               response.user.id;
 
             if (!userId) {

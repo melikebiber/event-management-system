@@ -64,8 +64,8 @@ export class Register {
   });
 
   constructor(
-    private authService: Auth,
-    private router: Router
+    private authService: Auth, //Auth: kayıt isteğini backend’e göndermek için
+    private router: Router //Router: kayıt sonrası login sayfasına gitmek için
   ) {}
 
   onSubmit() {
