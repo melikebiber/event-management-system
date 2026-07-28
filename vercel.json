@@ -3,15 +3,27 @@
   "services": {
     "frontend": {
       "root": "frontend",
-      "framework": "angular",
-      "routePrefix": "/"
+      "framework": "angular"
     },
     "backend": {
       "root": "backend",
       "runtime": "node",
       "framework": "express",
-      "entrypoint": "app.js",
-      "routePrefix": "/api"
+      "entrypoint": "app.js"
     }
-  }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "frontend"
+      }
+    }
+  ]
 }
