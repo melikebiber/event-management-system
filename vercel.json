@@ -3,7 +3,9 @@
   "services": {
     "frontend": {
       "root": "frontend",
-      "framework": "angular"
+      "framework": "angular",
+      "buildCommand": "npm run build",
+      "outputDirectory": "dist/event-management-frontend/browser"
     },
     "backend": {
       "root": "backend",
