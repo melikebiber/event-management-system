@@ -21,8 +21,7 @@ interface LocationResponse {
 })
 export class LocationService {
 
-  private apiUrl =
-    'http://localhost:3000/locations';
+ private apiUrl = '/api/locations';
 
   constructor(
     private http: HttpClient

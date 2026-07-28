@@ -65,7 +65,7 @@ interface CancelRegistrationResponse {
 })
 export class RegistrationService {
 
-  private apiUrl = 'http://localhost:3000/registrations';
+  private apiUrl = '/api/registrations';
 
   constructor(private http: HttpClient) {}
 

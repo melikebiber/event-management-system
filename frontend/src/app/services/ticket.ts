@@ -27,8 +27,8 @@ interface TicketResponse {
 })
 export class TicketService {
 
-  private apiUrl =
-    'http://localhost:3000/tickets';
+  
+    private apiUrl = '/api/tickets';
 
   constructor(
     private http: HttpClient

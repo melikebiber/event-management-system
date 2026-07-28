@@ -40,7 +40,7 @@ interface SignupResponse {
   providedIn: 'root'
 })
 export class Auth {
-  private apiUrl = 'http://localhost:3000';
+  private apiUrl = '/api';
 
   constructor(private http: HttpClient) {}
 
