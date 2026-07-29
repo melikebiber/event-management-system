@@ -11,5 +11,9 @@ const sequelize = new Sequelize(
     logging: false
   }
 );
+console.log('database.js kontrol:', {
+  sequelizeType: typeof sequelize,
+  defineType: typeof sequelize.define
+});
 
 module.exports = sequelize;
