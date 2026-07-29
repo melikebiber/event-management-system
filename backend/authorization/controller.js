@@ -3,7 +3,11 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const Ajv = require('ajv');
 
-const sequelize = require('../common/database');
+const databaseModule = require('../common/database');
+const sequelize =
+  databaseModule.default ||
+  databaseModule.sequelize ||
+  databaseModule;
 const defineUser = require('../common/models/User');
 
 const User = defineUser(sequelize);

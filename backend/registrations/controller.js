@@ -1,4 +1,9 @@
-const sequelize = require('../common/database');
+const databaseModule = require('../common/database');
+
+const sequelize =
+  databaseModule.default ||
+  databaseModule.sequelize ||
+  databaseModule;
 const defineRegistration = require('../common/models/Registration');
 const defineUser = require('../common/models/User');
 const defineEvent = require('../common/models/Event');

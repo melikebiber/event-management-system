@@ -1,5 +1,10 @@
 const express = require('express');
-const sequelize = require('./common/database'); //veritabanı bağlantısını app.js içine aldık.
+const databaseModule = require('./common/database');
+
+const sequelize =
+  databaseModule.default ||
+  databaseModule.sequelize ||
+  databaseModule; //veritabanı bağlantısını app.js içine aldık.
 const defineUser = require('./common/models/User'); //Kullanıcı modelini aldık
 const defineCategory = require('./common/models/Category');
 const authRoutes = require('./authorization/routes');
