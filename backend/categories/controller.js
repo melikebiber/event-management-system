@@ -1,4 +1,4 @@
-const sequelize = require('../common/database');
+const { sequelize } = require('../common/database');
 const defineCategory = require('../common/models/Category');
 
 const Category = defineCategory(sequelize);
