@@ -1,4 +1,4 @@
-const { sequelize } = require('../common/database');
+const sequelize = require('../common/database');
 
 const defineEvent =
   require('../common/models/Event');

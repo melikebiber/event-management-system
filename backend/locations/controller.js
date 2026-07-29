@@ -1,4 +1,4 @@
-const { sequelize } = require('../common/database');
+const sequelize = require('../common/database');
 const defineLocation = require('../common/models/Location');
 
 const Location = defineLocation(sequelize);
